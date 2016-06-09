@@ -15,8 +15,9 @@
   },
   "files": [
     "durruti*",
-    "LICENSE",
-    "README.md"
+    "state*",
+    "store*",
+    "static*"
   ],
   "keywords": [],
   "scripts": {
