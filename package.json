@@ -1,0 +1,61 @@
+{
+  "name": "durruti",
+  "version": "0.0.0",
+  "author": "Ionut Colceriu <contact@ghinda.net>",
+  "description": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ghinda/durruti/issues"
+  },
+  "homepage": "https://github.com/ghinda/durruti#readme",
+  "main": "durruti.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ghinda/durruti.git"
+  },
+  "files": [
+    "durruti*",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [],
+  "scripts": {
+    "test": "grunt test",
+    "core": "rollup src/durruti.js -o durruti.js -n durruti -c",
+    "static": "rollup src/static.js -o static.js -n durruti.static -c",
+    "store": "rollup src/store.js -o store.js -n durruti.Store -c",
+    "state": "rollup src/state.js -o state.js -n durruti.state -c",
+    "dev": "npm run core -- -w & npm run static -- -w & npm run store -- -w & npm run state -- -w"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "babel-preset-es2015": "^6.1.18",
+    "babel-preset-es2015-rollup": "^1.0.0",
+    "connect-livereload": "^0.5.3",
+    "grunt": "^0.4.5",
+    "grunt-assemble": "^0.4.0",
+    "grunt-build-control": "^0.6.2",
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-concat": "^0.5.1",
+    "grunt-contrib-connect": "^0.11.2",
+    "grunt-contrib-copy": "^0.8.0",
+    "grunt-contrib-stylus": "^1.0.0",
+    "grunt-contrib-uglify": "^0.11.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-rollup": "^0.6.1",
+    "grunt-saucelabs": "^8.6.2",
+    "grunt-standard": "^2.0.0",
+    "matchdep": "^1.0.0",
+    "rollup": "^0.29.0",
+    "rollup-plugin-babel": "^2.5.1",
+    "rollup-watch": "^2.1.1"
+  },
+  "standard": {
+    "globals": [
+      "describe",
+      "beforeEach",
+      "it",
+      "expect"
+    ]
+  }
+}
