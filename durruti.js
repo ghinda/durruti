@@ -4,14 +4,10 @@
   (global.durruti = factory());
 }(this, function () { 'use strict';
 
-  if (typeof window !== 'undefined') {
-    global = window;
-  }
-  var debugFlag = 'DURRUTI_DEBUG';
-  global[debugFlag] = true;
+  var DURRUTI_DEBUG = true;
 
   function warn() {
-    if (global[debugFlag] === true) {
+    if (DURRUTI_DEBUG === true) {
       console.warn.apply(console, arguments);
     }
   }
