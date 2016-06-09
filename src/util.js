@@ -27,14 +27,10 @@ export function extend (obj, defaults) {
   return extended
 }
 
-if (typeof window !== 'undefined') {
-  global = window
-}
-var debugFlag = 'DURRUTI_DEBUG'
-global[debugFlag] = true
+var DURRUTI_DEBUG = true
 
 export function warn () {
-  if (global[debugFlag] === true) {
+  if (DURRUTI_DEBUG === true) {
     console.warn.apply(console, arguments)
   }
 }

@@ -71,12 +71,6 @@
     return extended;
   }
 
-  if (typeof window !== 'undefined') {
-    global = window;
-  }
-  var debugFlag = 'DURRUTI_DEBUG';
-  global[debugFlag] = true;
-
   function Store(name, options) {
     options = options || {};
 
