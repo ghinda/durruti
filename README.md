@@ -4,5 +4,5 @@ Micro Isomorphic JavaScript library for building user interfaces.
 
 ## License
 
-Jotted is licensed under the [MIT license](LICENSE).
+Durruti is licensed under the [MIT license](LICENSE).
 
