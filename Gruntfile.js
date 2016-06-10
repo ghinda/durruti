@@ -66,7 +66,7 @@ module.exports = function (grunt) {
       },
       server: {
         src: [
-          '{src,test}/{,*/}*.js'
+          '{src,test}/**/*.js'
         ]
       }
     },
@@ -121,11 +121,29 @@ module.exports = function (grunt) {
         }
       }
     },
+    mochaTest: {
+      test: {
+        options: {
+          reporter: 'spec',
+          require: [
+            function () {
+              var chai = require('chai')
+              global.expect = chai.expect
+
+              global.durruti = require('./durruti')
+            }
+          ]
+        },
+        src: [
+          'test/shared/**/*.js'
+        ]
+      }
+    },
     'saucelabs-mocha': {
       all: {
         options: {
           urls: [
-            'http://127.0.0.1:9000/test'
+            'http://127.0.0.1:9000/test/client'
           ],
           detailedError: true,
           browsers: [
@@ -242,6 +260,7 @@ module.exports = function (grunt) {
   grunt.registerTask('test', [
     'default',
     'connect:test',
+    'mochaTest',
     'saucelabs-mocha'
   ])
 

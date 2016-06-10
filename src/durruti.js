@@ -10,10 +10,14 @@ var componentCache = {}
 var componentIndex = 0
 
 // decorate a basic class with durruti specific properties
-function decorate (component) {
+function decorate (Comp) {
+  var component
+
   // instantiate classes
-  if (typeof component === 'function') {
-    component = new component()
+  if (typeof Comp === 'function') {
+    component = new Comp()
+  } else {
+    component = Comp
   }
 
   // get the durruti specific properties
@@ -72,7 +76,7 @@ function addComponentId (template, id) {
   var firstBracketIndex = template.indexOf('>')
   var attr = ` ${durrutiAttr}="${id}"`
 
-  return template.substr(0, firstBracketIndex) + attr + template.substr(firstBracketIndex);
+  return template.substr(0, firstBracketIndex) + attr + template.substr(firstBracketIndex)
 }
 
 class Durruti {
