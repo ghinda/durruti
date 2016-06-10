@@ -22,12 +22,8 @@
   "keywords": [],
   "scripts": {
     "test": "grunt test",
-    "core": "rollup src/durruti.js -o durruti.js -n durruti -c",
-    "static": "rollup src/static.js -o static.js -n durruti.static -c",
-    "store": "rollup src/store.js -o store.js -n durruti.Store -c",
-    "state": "rollup src/state.js -o state.js -n durruti.state -c",
-    "build": "npm run core & npm run static & npm run store & npm run state",
-    "dev": "npm run core -- -w & npm run static -- -w & npm run store -- -w & npm run state -- -w"
+    "watch": "grunt watch",
+    "build": "grunt build"
   },
   "dependencies": {
     "mkdirp": "^0.5.1"

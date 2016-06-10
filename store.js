@@ -79,10 +79,9 @@
   }
 
   // one-level object extend
-  function extend(obj, defaults) {
-    if (obj === null) {
-      obj = {};
-    }
+  function extend() {
+    var obj = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    var defaults = arguments[1];
 
     // clone object
     var extended = clone(obj);

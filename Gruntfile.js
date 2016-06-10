@@ -78,16 +78,40 @@ module.exports = function (grunt) {
             exclude: 'node_modules/**'
           })
         ],
-        format: 'umd'
-      },
-      core: {
-        options: {
-          moduleName: 'Durruti'
-        },
-        files: {
-          src: 'src/durruti.js',
-          dest: 'durruti.js'
+        format: 'umd',
+        globals: {
+          fs: 'fs',
+          http: 'http',
+          mkdirp: 'mkdirp'
         }
+      },
+      durruti: {
+        options: {
+          moduleName: 'durruti'
+        },
+        src: [ 'src/durruti.js' ],
+        dest: 'durruti.js'
+      },
+      state: {
+        options: {
+          moduleName: 'durruti'
+        },
+        src: [ 'src/durruti.js' ],
+        dest: 'durruti.js'
+      },
+      store: {
+        options: {
+          moduleName: 'durruti.Store'
+        },
+        src: [ 'src/store.js' ],
+        dest: 'store.js'
+      },
+      static: {
+        options: {
+          moduleName: 'durruti.static'
+        },
+        src: [ 'src/static.js' ],
+        dest: 'static.js'
       }
     },
     uglify: {
