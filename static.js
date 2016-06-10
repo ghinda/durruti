@@ -37,6 +37,30 @@
     return extended;
   }
 
+  var classCallCheck = function (instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  };
+
+  var createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
+
   function fetch(params, callback) {
     params = extend(params, {
       host: 'localhost',
@@ -136,26 +160,31 @@
     });
   }
 
-  function render(params, callback) {
-    Promise.all(params.pages.map(function (page) {
-      var options = extend(params, {
-        path: page
-      });
+  var Static = function () {
+    function Static() {
+      classCallCheck(this, Static);
+    }
 
-      return writePage(options);
-    })).then(function (pages) {
-      var message = 'Rendered pages: \n * ';
-      message += pages.join('\n * ');
+    createClass(Static, [{
+      key: 'render',
+      value: function render(params, callback) {
+        Promise.all(params.pages.map(function (page) {
+          var options = extend(params, {
+            path: page
+          });
 
-      console.log(message);
+          return writePage(options);
+        })).then(function (pages) {
+          var message = 'Rendered pages: \n * ' + pages.join('\n * ');
 
-      callback();
-    });
-  }
+          console.log(message);
 
-  function Static() {
-    this.render = render;
-  }
+          callback();
+        });
+      }
+    }]);
+    return Static;
+  }();
 
   var _static = new Static();
 

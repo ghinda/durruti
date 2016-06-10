@@ -116,7 +116,7 @@ class Durruti {
         componentNodes = [].slice.call($container.querySelectorAll(durrutiElemSelector))
         componentNodes.push($container)
 
-        componentNodes.forEach(function (node) {
+        componentNodes.forEach((node) => {
           componentId = node.getAttribute(durrutiAttr)
           cachedComponent = getCachedComponent(componentId)
           cachedComponent.unmount(node)
@@ -149,7 +149,7 @@ class Durruti {
       }
 
       // mount newly added components
-      componentNodes.forEach(function (node) {
+      componentNodes.forEach((node) => {
         componentId = node.getAttribute(durrutiAttr)
         cachedComponent = getCachedComponent(componentId)
         cachedComponent.mount(node)

@@ -19,14 +19,14 @@ function fetch (params, callback) {
     port: params.port,
     path: params.path,
     method: 'GET'
-  }, function (res) {
+  }, (res) => {
     var page = ''
     res.setEncoding('utf8')
-    res.on('data', function (chunk) {
+    res.on('data', (chunk) => {
       page += chunk
     })
 
-    res.on('end', function () {
+    res.on('end', () => {
       callback(null, page)
     })
   })
@@ -75,7 +75,7 @@ function write (params, callback) {
   // create nested folders
   mkdirp.sync(pathFragments.join('/'))
 
-  fs.writeFile(path, params.content, function (err) {
+  fs.writeFile(path, params.content, (err) => {
     if (err) {
       return console.log(err)
     }
@@ -85,8 +85,8 @@ function write (params, callback) {
 }
 
 function writePage (params) {
-  return new Promise(function (resolve, reject) {
-    fetch(params, function (err, res) {
+  return new Promise((resolve, reject) => {
+    fetch(params, (err, res) => {
       if (err) {
         return reject(err)
       }
@@ -95,7 +95,7 @@ function writePage (params) {
         content: res
       })
 
-      write(params, function (err, res) {
+      write(params, (err, res) => {
         if (err) {
           return reject(err)
         }
@@ -106,26 +106,23 @@ function writePage (params) {
   })
 }
 
-function render (params, callback) {
-  Promise.all(params.pages.map(function (page) {
-    var options = util.extend(params, {
-      path: page
+class Static {
+  render (params, callback) {
+    Promise.all(params.pages.map((page) => {
+      var options = util.extend(params, {
+        path: page
+      })
+
+      return writePage(options)
+    }))
+    .then((pages) => {
+      var message = `Rendered pages: \n * ${pages.join('\n * ')}`
+
+      console.log(message)
+
+      callback()
     })
-
-    return writePage(options)
-  }))
-  .then(function (pages) {
-    var message = 'Rendered pages: \n * '
-    message += pages.join('\n * ')
-
-    console.log(message)
-
-    callback()
-  })
-}
-
-function Static () {
-  this.render = render
+  }
 }
 
 export default new Static()

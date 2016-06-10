@@ -7,11 +7,7 @@ export function clone (obj) {
 }
 
 // one-level object extend
-export function extend (obj, defaults) {
-  if (obj === null) {
-    obj = {}
-  }
-
+export function extend (obj = {}, defaults) {
   // clone object
   var extended = clone(obj)
 
