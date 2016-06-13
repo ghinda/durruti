@@ -1,10 +1,8 @@
 'use strict';
-var LIVERELOAD_PORT = 35729;
-var lrSnippet = require('connect-livereload')({ port: LIVERELOAD_PORT })
-var mountFolder = function (connect, dir) {
-  return connect.static(require('path').resolve(dir))
-};
+var path = require('path')
 var babel = require('rollup-plugin-babel')
+
+var LIVERELOAD_PORT = 35729
 
 module.exports = function (grunt) {
   // load all grunt tasks
@@ -20,9 +18,7 @@ module.exports = function (grunt) {
           livereload: LIVERELOAD_PORT
         },
         files: [
-          'build/{,*/}*.html',
-          '{,site/**/}*.css',
-          '{,test/**/,site/**/}*.js'
+          '{,test/**/,./}*.js'
         ]
       },
       js: {
@@ -43,15 +39,8 @@ module.exports = function (grunt) {
         options: {
           livereload: true,
           base: [
-            './site/',
-            './build',
             './'
           ]
-        }
-      },
-      dist: {
-        options: {
-          base: './build'
         }
       },
       test: {
@@ -92,13 +81,6 @@ module.exports = function (grunt) {
         src: [ 'src/durruti.js' ],
         dest: 'durruti.js'
       },
-      state: {
-        options: {
-          moduleName: 'durruti'
-        },
-        src: [ 'src/durruti.js' ],
-        dest: 'durruti.js'
-      },
       store: {
         options: {
           moduleName: 'durruti.Store'
@@ -106,9 +88,16 @@ module.exports = function (grunt) {
         src: [ 'src/store.js' ],
         dest: 'store.js'
       },
+      state: {
+        options: {
+          format: 'cjs'
+        },
+        src: [ 'src/state.js' ],
+        dest: 'state.js'
+      },
       static: {
         options: {
-          moduleName: 'durruti.static'
+          format: 'cjs'
         },
         src: [ 'src/static.js' ],
         dest: 'static.js'
@@ -117,7 +106,8 @@ module.exports = function (grunt) {
     uglify: {
       dist: {
         files: {
-          'durruti.min.js': 'durruti.js'
+          'durruti.min.js': 'durruti.js',
+          'store.min.js': 'store.js'
         }
       }
     },
@@ -135,7 +125,7 @@ module.exports = function (grunt) {
           ]
         },
         src: [
-          'test/shared/**/*.js'
+          'test/{server,shared}/**/*.js',
         ]
       }
     },
@@ -156,7 +146,7 @@ module.exports = function (grunt) {
             }, {
               browserName: 'android',
               platform: 'Linux',
-              version: '5.1'
+              version: '4.4'
             }, {
               browserName: 'internet explorer',
               platform: 'Windows 7',
@@ -185,58 +175,11 @@ module.exports = function (grunt) {
     clean: {
       site: {
         src: [
-          'build/',
-          './durruti.*'
+          './durruti.*',
+          './store.*',
+          './state.*',
+          './static.*'
         ]
-      }
-    },
-    copy: {
-      site: {
-        files: [
-          {
-            expand: true,
-            cwd: 'site/',
-            src: [
-              '**/*',
-              '!**/*.{hbs,md}'
-            ],
-            dest: 'build/'
-          },
-          {
-            expand: true,
-            src: [
-              'bower_components/**/*'
-            ],
-            dest: 'build/'
-          },
-          {
-            expand: true,
-            src: [
-              'build/**/*'
-            ],
-            dest: 'build/'
-          },
-          {
-            expand: true,
-            src: [
-              'durruti*'
-            ],
-            dest: 'build/'
-          }
-        ]
-      }
-    },
-    buildcontrol: {
-      options: {
-        dir: 'build',
-        commit: true,
-        push: true
-      },
-      site: {
-        options: {
-          remote: 'git@github.com:ghinda/durruti.git',
-          branch: 'gh-pages'
-        }
       }
     }
   })
@@ -245,7 +188,6 @@ module.exports = function (grunt) {
     if (target === 'dist') {
       return grunt.task.run([
         'default',
-        'copy',
         'connect:dist:keepalive'
       ])
     }
@@ -269,11 +211,5 @@ module.exports = function (grunt) {
     'standard',
     'rollup',
     'uglify'
-  ])
-
-  grunt.registerTask('deploy', [
-    'test',
-    'copy',
-    'buildcontrol'
   ])
 }

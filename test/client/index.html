@@ -19,6 +19,7 @@
   <div class="fixtures"></div>
 
   <script src="/durruti.js"></script>
+  <script src="/store.js"></script>
 
   <script src="/node_modules/mocha/mocha.js"></script>
   <script src="/node_modules/chai/chai.js"></script>
@@ -28,7 +29,8 @@
     window.expect = chai.expect;
   </script>
 
-  <script src="../shared/core.spec.js"></script>
+  <script src="client.store.js"></script>
+  <script src="../shared/shared.core.js"></script>
 
   <script>
     onload = function() {

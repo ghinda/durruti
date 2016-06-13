@@ -23,10 +23,7 @@ describe('Core', function () {
 
     function Parent () {
       this.render = function () {
-        return `<div>
-          Parent
-          ${durruti.render(Child)}
-        </div>`
+        return '<div>Parent' + durruti.render(Child) + '</div>'
       }
     }
 

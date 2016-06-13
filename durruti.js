@@ -42,10 +42,14 @@
   var componentIndex = 0;
 
   // decorate a basic class with durruti specific properties
-  function decorate(component) {
+  function decorate(Comp) {
+    var component;
+
     // instantiate classes
-    if (typeof component === 'function') {
-      component = new component();
+    if (typeof Comp === 'function') {
+      component = new Comp();
+    } else {
+      component = Comp;
     }
 
     // get the durruti specific properties
