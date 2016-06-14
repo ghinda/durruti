@@ -125,7 +125,7 @@ The store library can be used to store data, with change history, shared state b
 
 To use it, include the `store.js` file.
 
-Initialize a new store with `new Store(storeName, options)`. Both parameters are optional.
+Initialize a new store with `new durruti.Store(storeName, options)`. Both parameters are optional.
 
 * `storeName`: The first parameter is required only when sharing state between client and server, and must be a unique key.
 * `options`: The second parameter is an options hash.
@@ -147,7 +147,7 @@ Stores have four methods:
 #### Example
 
 ```javascript
-var model = new Store()
+var model = new durruti.Store()
 model.on('change', function () {
   console.log('The new store value is ' + model.get())
 })
