@@ -1,6 +1,10 @@
-# Durruti
+<p align="center"><a href="https://github.com/ghinda/durruti" target="_blank"><img width="300" src="artwork/durruti-logo.png"></a></p>
 
-[![Build Status](https://api.travis-ci.org/ghinda/durruti.svg)](https://travis-ci.org/ghinda/durruti)
+<p align="center">
+  <a href="https://travis-ci.org/ghinda/durruti"><img src="https://api.travis-ci.org/ghinda/durruti.svg" alt="Build Status"></a>
+</p>
+
+# Durruti
 
 Micro Isomorphic JavaScript library for building user interfaces.
 
