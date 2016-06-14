@@ -22,7 +22,7 @@
   "keywords": [],
   "scripts": {
     "test": "grunt test",
-    "watch": "grunt server",
+    "dev": "grunt server",
     "build": "grunt build"
   },
   "dependencies": {

@@ -25,9 +25,11 @@ class State {
 
   render () {
     return `
+      <script>
       ;(function(){
         window['${namespace}'] = JSON.parse('${JSON.stringify(data)}')
       }());
+      </script>
     `
   }
 }

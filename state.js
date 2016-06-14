@@ -58,7 +58,7 @@ var State = function () {
   }, {
     key: 'render',
     value: function render() {
-      return '\n      ;(function(){\n        window[\'' + namespace + '\'] = JSON.parse(\'' + JSON.stringify(data) + '\')\n      }());\n    ';
+      return '\n      <script>\n      ;(function(){\n        window[\'' + namespace + '\'] = JSON.parse(\'' + JSON.stringify(data) + '\')\n      }());\n      </script>\n    ';
     }
   }]);
   return State;

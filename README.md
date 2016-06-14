@@ -1,5 +1,7 @@
 # Durruti
 
+[![Build Status](https://api.travis-ci.org/ghinda/durruti.svg)](https://travis-ci.org/ghinda/durruti)
+
 Micro Isomorphic JavaScript library for building user interfaces.
 
 ## Why?
