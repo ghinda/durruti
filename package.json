@@ -20,7 +20,7 @@
     "static*"
   ],
   "scripts": {
-    "test": "grunt test",
+    "test": "ln -sfn ../ node_modules/durruti; grunt test",
     "dev": "grunt server",
     "build": "grunt"
   },

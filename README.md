@@ -163,7 +163,11 @@ model.set('New Model Value')
 
 ### State
 
-The state library is used for sharing Store data between client and server. The library itself has to be used only on the server, and exposes a single `render` method.
+The state library is used for sharing Store data between client and server.
+
+In the browser, just include `state.js` and set a unique name for each Store. (eg. `new Store('store123')`).
+
+On the server, render the output of the `render` method in the HTML output.
 
 ```javascript
 var express = require('express')

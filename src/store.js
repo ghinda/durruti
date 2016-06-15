@@ -2,7 +2,7 @@
  * Data store with change events.
  */
 
-import state from './state'
+import state from 'durruti/state'
 import * as util from './util'
 
 function Store (name, options) {

@@ -111,9 +111,36 @@
     return template.substr(0, firstBracketIndex) + attr + template.substr(firstBracketIndex);
   }
 
+  function missingStateError() {
+    warn('state.js is not included. Store data will not be shared between client and server.');
+  }
+
+  // prevent errors when state.js is not included on the client
+
+  var StateMock = function () {
+    function StateMock() {
+      classCallCheck(this, StateMock);
+    }
+
+    createClass(StateMock, [{
+      key: 'get',
+      value: function get() {
+        missingStateError();
+      }
+    }, {
+      key: 'set',
+      value: function set() {
+        missingStateError();
+      }
+    }]);
+    return StateMock;
+  }();
+
   var Durruti = function () {
     function Durruti() {
       classCallCheck(this, Durruti);
+
+      this._state = new StateMock();
     }
 
     createClass(Durruti, [{

@@ -71,7 +71,8 @@ module.exports = function (grunt) {
         globals: {
           fs: 'fs',
           http: 'http',
-          mkdirp: 'mkdirp'
+          mkdirp: 'mkdirp',
+          'durruti/state': 'durruti._state'
         }
       },
       durruti: {
@@ -90,7 +91,7 @@ module.exports = function (grunt) {
       },
       state: {
         options: {
-          format: 'cjs'
+          moduleName: 'durruti._state'
         },
         src: [ 'src/state.js' ],
         dest: 'state.js'

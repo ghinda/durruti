@@ -79,7 +79,25 @@ function addComponentId (template, id) {
   return template.substr(0, firstBracketIndex) + attr + template.substr(firstBracketIndex)
 }
 
+function missingStateError () {
+  util.warn('state.js is not included. Store data will not be shared between client and server.')
+}
+
+// prevent errors when state.js is not included on the client
+class StateMock {
+  get () {
+    missingStateError()
+  }
+  set () {
+    missingStateError()
+  }
+}
+
 class Durruti {
+  constructor () {
+    this._state = new StateMock()
+  }
+
   renderStatic (template) {
     clearComponentCache()
 
