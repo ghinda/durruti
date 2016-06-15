@@ -8,6 +8,8 @@
 
 Micro isomorphic JavaScript library for building user interfaces.
 
+* [TodoMVC with Durruti](https://github.com/ghinda/durruti-todomvc)
+
 ## Why?
 
 Durruti aims to make isomorphic component-based JavaScript web apps easier to develop. It's focused on simplicity rather than performance.
