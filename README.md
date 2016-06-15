@@ -53,7 +53,7 @@ Durruti components are basic JavaScript classes or objects that can expose three
 
 * `render`: The render method is mandatory and must return the component template as a string. The template must contain a top level DOM node.
 * `mount`: The optional mount method is called after the component is added to the DOM. The mount method receives the current DOM node as a parameter.
-* `unmount`: The optional mount method is called before the component is removed from the DOM.
+* `unmount`: The optional unmount method is called before the component is removed from the DOM.
 
 #### Example
 
@@ -148,7 +148,7 @@ Stores have four methods:
 * `set`: Set the store value.
 * `get`: Get the current store value.
 * `list`: List all values that the store had. History must be enabled.
-* `on`: Attach callback to events. The only event available right now is `change`. It triggers when the store value has changed.
+* `on`: Attach callback to events. The only event available right now is `change`. It triggers after the store value has changed.
 
 #### Example
 
