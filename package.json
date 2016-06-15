@@ -1,6 +1,6 @@
 {
   "name": "durruti",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "author": "Ionut Colceriu <contact@ghinda.net>",
   "description": "",
   "license": "MIT",
@@ -19,11 +19,10 @@
     "store*",
     "static*"
   ],
-  "keywords": [],
   "scripts": {
     "test": "grunt test",
     "dev": "grunt server",
-    "build": "grunt build"
+    "build": "grunt"
   },
   "dependencies": {
     "mkdirp": "^0.5.1"
