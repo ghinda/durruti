@@ -6,7 +6,7 @@
 
 # Durruti
 
-Micro Isomorphic JavaScript library for building user interfaces.
+Micro isomorphic JavaScript library for building user interfaces.
 
 ## Why?
 

@@ -2,7 +2,7 @@
   "name": "durruti",
   "version": "0.0.1",
   "author": "Ionut Colceriu <contact@ghinda.net>",
-  "description": "",
+  "description": "Micro isomorphic JavaScript library for building user interfaces.",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ghinda/durruti/issues"
