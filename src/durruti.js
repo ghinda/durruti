@@ -59,17 +59,30 @@ function clearComponentCache (id) {
   componentCache[id] = null
 }
 
-function addComponentId (template, id) {
-  // in the browser throw an error if the component template
-  // doesn't have a single parent.
-  if (typeof window !== 'undefined') {
-    var div = document.createElement('div')
-    div.innerHTML = template
-    if (div.children.length !== 1) {
-      throw new Error('Component template must have a single parent node.', template)
-    }
+function createFragment (template = '') {
+  template = template.trim()
+  var parent = 'div'
+  var $node
+
+  if (template.indexOf('<tr') === 0) {
+    // table row
+    parent = 'tbody'
+  } else if (template.indexOf('<td') === 0) {
+    // table column
+    parent = 'tr'
   }
 
+  $node = document.createElement(parent)
+  $node.innerHTML = template
+
+  if ($node.children.length !== 1) {
+    throw new Error('Component template must have a single parent node.', template)
+  }
+
+  return $node.firstElementChild
+}
+
+function addComponentId (template, id) {
   // naive implementation of adding an attribute to the parent container.
   // so we don't depend on a dom parser.
   // downside is we can't warn that template MUST have a single parent (in Node.js).
@@ -148,9 +161,7 @@ class Durruti {
         })
 
         // convert the template string to a dom node
-        var $comp = document.createElement('div')
-        $comp.innerHTML = componentHtml
-        $comp = $comp.firstElementChild
+        var $comp = createFragment(componentHtml)
 
         // insert to the dom component dom node
         $container.parentNode.replaceChild($comp, $container)
