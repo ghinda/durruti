@@ -77,10 +77,6 @@
     return component;
   }
 
-  function getCachedComponent(id) {
-    return componentCache[id];
-  }
-
   function clearComponentCache(id) {
     // clear the entire component cache
     if (!id) {
@@ -151,6 +147,26 @@
     return StateMock;
   }();
 
+  function traverseNodes($container, arr) {
+    var i;
+    for (i = 0; i < $container.children.length; i++) {
+      if ($container.children[i].children.length) {
+        traverseNodes($container.children[i], arr);
+      }
+
+      if ($container.children[i]._durruti) {
+        arr.push($container.children[i]);
+      }
+    }
+
+    return arr;
+  }
+
+  function trav($container) {
+    var arr = [];
+    return traverseNodes($container, arr);
+  }
+
   var Durruti = function () {
     function Durruti() {
       classCallCheck(this, Durruti);
@@ -180,6 +196,7 @@
         var componentId;
         var cachedComponent;
         var componentNodes;
+        var mountMap = [];
 
         // mount and unmount in browser, when we specify a container.
         if (typeof window !== 'undefined' && $container) {
@@ -196,29 +213,46 @@
 
           // if the container is a durruti element,
           // unmount it and it's children and replace the node.
-          if ($container.getAttribute(durrutiAttr)) {
+          //       if ($container.getAttribute(durrutiAttr)) {
+          if ($container._durruti) {
             // unmount components that are about to be removed from the dom.
-            componentNodes = [].slice.call($container.querySelectorAll(durrutiElemSelector));
+            //         componentNodes = [].slice.call($container.querySelectorAll(durrutiElemSelector))
+            componentNodes = trav($container);
             componentNodes.push($container);
 
             componentNodes.forEach(function (node) {
-              componentId = node.getAttribute(durrutiAttr);
-              cachedComponent = getCachedComponent(componentId);
+              //           componentId = node.getAttribute(durrutiAttr)
+              //           cachedComponent = getCachedComponent(componentId)
+
+              //           console.log('unmount', node)
+
+              cachedComponent = node._durruti;
               cachedComponent.unmount(node);
 
               // clear the component from the cache
-              clearComponentCache(componentId);
+              //           clearComponentCache(componentId)
             });
 
             // convert the template string to a dom node
             var $comp = createFragment(componentHtml);
 
-            // insert to the dom component dom node
-            $container.parentNode.replaceChild($comp, $container);
-
             // prepend the parent to the nodelist
             componentNodes = [].slice.call($comp.querySelectorAll(durrutiElemSelector));
             componentNodes.unshift($comp);
+
+            $comp._durruti = durrutiComponent;
+
+            // TODO clean-up data attributes
+            componentNodes.forEach(function (node) {
+              mountMap.push(node);
+              node.removeAttribute(durrutiAttr);
+
+              node._durruti = durrutiComponent;
+            });
+
+            // insert to the dom component dom node
+            //         $container.parentNode.replaceChild($comp, $container)
+            patch($container, $comp);
           } else {
             // if the component is not a durrti element,
             // insert the template with innerHTML.
@@ -229,13 +263,32 @@
             }
 
             componentNodes = [].slice.call($container.querySelectorAll(durrutiElemSelector));
+
+            // TODO clean-up data attributes
+            componentNodes.forEach(function (node) {
+              mountMap.push(node);
+              node.removeAttribute(durrutiAttr);
+
+              node._durruti = durrutiComponent;
+            });
+
+            $container._durruti = durrutiComponent;
           }
 
           // mount newly added components
-          componentNodes.forEach(function (node) {
-            componentId = node.getAttribute(durrutiAttr);
-            cachedComponent = getCachedComponent(componentId);
-            cachedComponent.mount(node);
+          //       componentNodes.forEach((node) => {
+          //         componentId = node.getAttribute(durrutiAttr)
+          //         cachedComponent = getCachedComponent(componentId)
+          //         cachedComponent.mount(node)
+          //       })
+
+          mountMap.forEach(function (node) {
+            //         cachedComponent = getCachedComponent(comp.id)
+            //         cachedComponent.mount(comp.$container)
+
+            //         console.log('mount', node)
+
+            node._durruti.mount(node);
           });
         }
 
@@ -244,6 +297,103 @@
     }]);
     return Durruti;
   }();
+
+  function traverse($node, $newNode, patches) {
+    var children = $node.childNodes;
+    var newChildren = $newNode.childNodes;
+
+    if (children.length === newChildren.length) {
+      // traverse
+      var i;
+      for (i = 0; i < newChildren.length; i++) {
+        patchElement(children[i], newChildren[i], patches);
+      }
+    } else {
+      // replace
+      patches.push({
+        node: $node,
+        newNode: $newNode,
+        replace: true
+      });
+    }
+  }
+
+  function mapAttributes($node, $newNode) {
+    var attrs = {};
+    var i;
+
+    for (i = 0; i < $node.attributes.length; i++) {
+      attrs[$node.attributes[i].name] = null;
+    }
+
+    for (i = 0; i < $newNode.attributes.length; i++) {
+      attrs[$newNode.attributes[i].name] = $newNode.attributes[i].value;
+    }
+
+    return attrs;
+  }
+
+  function patchAttrs($node, $newNode) {
+    // map attributes
+    var attrs = mapAttributes($node, $newNode);
+    var props = Object.keys(attrs);
+
+    // add-change attributes
+    var i;
+    for (i = 0; i < props.length; i++) {
+      if (!attrs[props[i]]) {
+        $node.removeAttribute(props[i]);
+      } else {
+        $node.setAttribute(props[i], attrs[props[i]]);
+      }
+    }
+  }
+
+  function patchElement($node, $newNode, patches) {
+    var newType = $newNode.nodeType;
+    var oldType = $node.nodeType;
+    var replace = false;
+
+    // if element node
+    if (oldType === 1 && newType === 1) {
+      // with the same tag name
+      if ($node.tagName !== $newNode.tagName) {
+        replace = true;
+      } else if ($node.innerHTML !== $newNode.innerHTML) {
+        traverse($node, $newNode, patches);
+      }
+    } else {
+      replace = true;
+    }
+
+    // change attrs
+    patches.push({
+      node: $node,
+      newNode: $newNode,
+      replace: replace
+
+    });
+  }
+
+  function loopPatch(patch) {
+    if (patch.replace) {
+      patch.node.parentNode.replaceChild(patch.newNode, patch.node);
+    } else {
+      patchAttrs(patch.node, patch.newNode);
+    }
+
+    patch.node._durruti = patch.newNode._durruti;
+  }
+
+  function patch($node, $newNode) {
+    var patches = [];
+    patchElement($node, $newNode, patches);
+
+    var i;
+    for (i = 0; i < patches.length; i++) {
+      loopPatch(patches[i]);
+    }
+  }
 
   var durruti = new Durruti();
 

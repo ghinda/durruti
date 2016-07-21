@@ -1,0 +1,103 @@
+<html>
+<head>
+  <link rel="stylesheet" href="bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="link">
+  You're looking at a Durruti<br>
+  version of <a href="https://dbmonster.firebaseapp.com/">DBMonster</a>.<br>
+  <a class="center" href="https://github.com/ghinda/durruti-dbmonster">See it on GitHub</a>
+</div>
+
+<div id="body">
+</div>
+
+<script src="ENV.js"></script>
+<script src="../durruti.js"></script>
+
+<script src="http://localvoid.github.io/perf-monitor/0.1/perf-monitor.js"></script>
+
+<script type="text/javascript">
+  var data = []
+
+  function Main () {
+    this.render = function () {
+      return `
+        <table class="table table-striped latest-data">
+          <tbody>
+
+          ${data.map(function (row, index) {
+            var r = new Row(row)
+            return durruti.render(r)
+          }).join('')}
+
+          </tbody>
+        </table>
+      `
+    }
+  }
+
+  function Row (row) {
+    this.render = function () {
+      return `
+          <tr>
+            <td class="dbname">
+              ${row.dbname}
+            </td>
+
+            <td class="query-count">
+              <span class="${row.lastSample.countClassName}">
+                ${row.lastSample.nbQueries}
+              </span>
+            </td>
+
+            ${row.lastSample.topFiveQueries.map(function (col) {
+              return `
+              <td class="Query ${col.elapsedClassName}">
+                ${col.formatElapsed}
+                <div class="popover left">
+                  <div class="popover-content">${col.query}</div>
+                  <div class="arrow"></div>
+                </div>
+              </td>
+              `
+            }).join('')}
+          </tr>
+          `
+    }
+  }
+
+  var $body = document.querySelector('#body')
+  var mainInstance = new Main()
+
+  function setStoreData (d) {
+    data = d
+
+    durruti.render(mainInstance, $body.querySelector('.latest-data'))
+  }
+
+  perfMonitor.startFPSMonitor();
+  perfMonitor.startMemMonitor();
+  perfMonitor.initProfiler('view update');
+
+  durruti.render(mainInstance, $body)
+
+  setStoreData(ENV.generateData().toArray())
+
+  function redraw() {
+    perfMonitor.startProfile('view update');
+
+    setStoreData(ENV.generateData().toArray());
+
+    perfMonitor.endProfile('view update');
+    setTimeout(redraw, ENV.timeout);
+//     setTimeout(redraw, 5000);
+  }
+
+  redraw();
+</script>
+
+</body>
+</html>
