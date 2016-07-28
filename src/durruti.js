@@ -45,9 +45,9 @@ function decorate (Comp) {
   return component
 }
 
-function getCachedComponent (id) {
-  return componentCache[id]
-}
+// function getCachedComponent (id) {
+//   return componentCache[id]
+// }
 
 function clearComponentCache (id) {
   // clear the entire component cache
@@ -147,7 +147,7 @@ class Durruti {
 
     var template = durrutiComponent.render()
     var componentHtml = addComponentId(template, durrutiComponent._durruti.id)
-    var componentId
+//     var componentId
     var cachedComponent
     var componentNodes
     var mountMap = []
@@ -244,13 +244,11 @@ class Durruti {
 
         node._durruti.mount(node)
       })
-
     }
 
     return componentHtml
   }
 }
-
 
 function traverse ($node, $newNode, patches) {
   var children = $node.childNodes
@@ -258,7 +256,7 @@ function traverse ($node, $newNode, patches) {
 
   if (children.length === newChildren.length) {
     // traverse
-    var i;
+    var i
     for (i = 0; i < newChildren.length; i++) {
       patchElement(children[i], newChildren[i], patches)
     }
@@ -277,11 +275,15 @@ function mapAttributes ($node, $newNode) {
   var i
 
   for (i = 0; i < $node.attributes.length; i++) {
-    attrs[$node.attributes[i].name] = null
+    if ($node.attributes[i].name !== 'class') {
+      attrs[$node.attributes[i].name] = null
+    }
   }
 
   for (i = 0; i < $newNode.attributes.length; i++) {
-    attrs[$newNode.attributes[i].name] = $newNode.attributes[i].value
+    if ($newNode.attributes[i].name !== 'class') {
+      attrs[$newNode.attributes[i].name] = $newNode.attributes[i].value
+    }
   }
 
   return attrs
@@ -293,12 +295,43 @@ function patchAttrs ($node, $newNode) {
   var props = Object.keys(attrs)
 
   // add-change attributes
-  var i;
+  var i
   for (i = 0; i < props.length; i++) {
     if (!attrs[props[i]]) {
       $node.removeAttribute(props[i])
     } else {
       $node.setAttribute(props[i], attrs[props[i]])
+    }
+  }
+}
+
+function mapClasses ($node, $newNode) {
+  var classNames = {}
+  var i
+
+  for (i = 0; i < $node.classList.length; i++) {
+    classNames[$node.classList[i]] = false
+  }
+
+  for (i = 0; i < $newNode.classList.length; i++) {
+    classNames[$newNode.classList[i]] = true
+  }
+
+  return classNames
+}
+
+function patchClassList ($node, $newNode) {
+  // map attributes
+  var classNames = mapClasses($node, $newNode)
+  var props = Object.keys(classNames)
+
+  // add-change attributes
+  var i
+  for (i = 0; i < props.length; i++) {
+    if (classNames[props[i]]) {
+      $node.classList.add(props[i])
+    } else {
+      $node.classList.remove(props[i])
     }
   }
 }
@@ -334,6 +367,7 @@ function loopPatch (patch) {
     patch.node.parentNode.replaceChild(patch.newNode, patch.node)
   } else {
     patchAttrs(patch.node, patch.newNode)
+    patchClassList(patch.node, patch.newNode)
   }
 
   patch.node._durruti = patch.newNode._durruti
@@ -343,7 +377,7 @@ function patch ($node, $newNode) {
   var patches = []
   patchElement($node, $newNode, patches)
 
-  var i;
+  var i
   for (i = 0; i < patches.length; i++) {
     loopPatch(patches[i])
   }
