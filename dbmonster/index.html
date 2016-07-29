@@ -84,16 +84,14 @@
 
   durruti.render(mainInstance, $body)
 
-  setStoreData(ENV.generateData().toArray())
-
   function redraw() {
     perfMonitor.startProfile('view update');
 
     setStoreData(ENV.generateData().toArray());
 
     perfMonitor.endProfile('view update');
-//     setTimeout(redraw, ENV.timeout);
-    setTimeout(redraw, 5000);
+    setTimeout(redraw, ENV.timeout);
+//     setTimeout(redraw, 5000);
   }
 
   redraw();

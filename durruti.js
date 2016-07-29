@@ -303,22 +303,9 @@
   }();
 
   function traverse($node, $newNode, patches) {
-    var children = $node.childNodes;
-    var newChildren = $newNode.childNodes;
-
-    if (children.length === newChildren.length) {
-      // traverse
-      var i;
-      for (i = 0; i < newChildren.length; i++) {
-        patchElement(children[i], newChildren[i], patches);
-      }
-    } else {
-      // replace
-      patches.push({
-        node: $node,
-        newNode: $newNode,
-        replace: true
-      });
+    // traverse
+    for (var i = 0; i < $node.childNodes.length; i++) {
+      patchElement($node.childNodes[i], $newNode.childNodes[i], patches);
     }
   }
 
@@ -327,15 +314,11 @@
     var i;
 
     for (i = 0; i < $node.attributes.length; i++) {
-      if ($node.attributes[i].name !== 'class') {
-        attrs[$node.attributes[i].name] = null;
-      }
+      attrs[$node.attributes[i].name] = null;
     }
 
     for (i = 0; i < $newNode.attributes.length; i++) {
-      if ($newNode.attributes[i].name !== 'class') {
-        attrs[$newNode.attributes[i].name] = $newNode.attributes[i].value;
-      }
+      attrs[$newNode.attributes[i].name] = $newNode.attributes[i].value;
     }
 
     return attrs;
@@ -344,73 +327,40 @@
   function patchAttrs($node, $newNode) {
     // map attributes
     var attrs = mapAttributes($node, $newNode);
-    var props = Object.keys(attrs);
 
     // add-change attributes
-    var i;
-    for (i = 0; i < props.length; i++) {
-      if (!attrs[props[i]]) {
-        $node.removeAttribute(props[i]);
+    for (var prop in attrs) {
+      if (!attrs[prop]) {
+        $node.removeAttribute(prop);
       } else {
-        $node.setAttribute(props[i], attrs[props[i]]);
-      }
-    }
-  }
-
-  function mapClasses($node, $newNode) {
-    var classNames = {};
-    var i;
-
-    for (i = 0; i < $node.classList.length; i++) {
-      classNames[$node.classList[i]] = false;
-    }
-
-    for (i = 0; i < $newNode.classList.length; i++) {
-      classNames[$newNode.classList[i]] = true;
-    }
-
-    return classNames;
-  }
-
-  function patchClassList($node, $newNode) {
-    // map attributes
-    var classNames = mapClasses($node, $newNode);
-    var props = Object.keys(classNames);
-
-    // add-change attributes
-    var i;
-    for (i = 0; i < props.length; i++) {
-      if (classNames[props[i]]) {
-        $node.classList.add(props[i]);
-      } else {
-        $node.classList.remove(props[i]);
+        $node.setAttribute(prop, attrs[prop]);
       }
     }
   }
 
   function patchElement($node, $newNode, patches) {
-    var newType = $newNode.nodeType;
-    var oldType = $node.nodeType;
-    var replace = false;
-
-    // if element node
-    if (oldType === 1 && newType === 1) {
-      // with the same tag name
-      if ($node.tagName !== $newNode.tagName) {
-        replace = true;
-      } else if ($node.innerHTML !== $newNode.innerHTML) {
-        traverse($node, $newNode, patches);
-      }
-    } else {
-      replace = true;
+    // faster than outerhtml
+    if ($node.isEqualNode($newNode)) {
+      return;
     }
 
-    // change attrs
+    var replace = false;
+
+    // if one of them is not an element node,
+    // or the tag changed,
+    // or not the same number of children.
+    if ($node.nodeType !== 1 || $newNode.nodeType !== 1 || $node.tagName !== $newNode.tagName || $node.childNodes.length !== $newNode.childNodes.length) {
+      replace = true;
+    } else {
+      // update attributes and traverse children
+      traverse($node, $newNode, patches);
+    }
+
+    // replace
     patches.push({
       node: $node,
       newNode: $newNode,
       replace: replace
-
     });
   }
 
@@ -419,7 +369,6 @@
       patch.node.parentNode.replaceChild(patch.newNode, patch.node);
     } else {
       patchAttrs(patch.node, patch.newNode);
-      patchClassList(patch.node, patch.newNode);
     }
 
     patch.node._durruti = patch.newNode._durruti;
@@ -429,10 +378,7 @@
     var patches = [];
     patchElement($node, $newNode, patches);
 
-    var i;
-    for (i = 0; i < patches.length; i++) {
-      loopPatch(patches[i]);
-    }
+    patches.forEach(loopPatch);
   }
 
   var durruti = new Durruti();
