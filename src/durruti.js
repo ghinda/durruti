@@ -3,9 +3,10 @@
  */
 
 import * as util from './util'
+import patch from './patch'
 
-var durrutiAttr = 'data-durruti-id'
-var durrutiElemSelector = `[${durrutiAttr}]`
+const durrutiAttr = 'data-durruti-id'
+const durrutiElemSelector = `[${durrutiAttr}]`
 var componentCache = {}
 var componentIndex = 0
 
@@ -17,46 +18,71 @@ function decorate (Comp) {
   if (typeof Comp === 'function') {
     component = new Comp()
   } else {
-    component = Comp
+    // make sure we don't change the id on a cached component
+    component = Object.create(Comp)
   }
-
-  // get the durruti specific properties
-  var props = component._durruti || {}
 
   // components get a new id on render,
   // so we can clear the previous component cache.
-  props.id = String(componentIndex++)
-
-  // set defaults for mount and unmount
-  if (typeof component.mount !== 'function') {
-    component.mount = function () {}
-  }
-
-  if (typeof component.unmount !== 'function') {
-    component.unmount = function () {}
-  }
-
-  // set the new properties on the component
-  component._durruti = props
+  component._durrutiId = String(componentIndex++)
 
   // cache component
-  componentCache[props.id] = component
+  componentCache[component._durrutiId] = component
 
   return component
 }
 
-// function getCachedComponent (id) {
-//   return componentCache[id]
-// }
+function getCachedComponent ($node) {
+  // get the component from the dom node - rendered in browser.
+  // or get it from the component cache - rendered on the server.
+  return $node._durruti || componentCache[$node.getAttribute(durrutiAttr)]
+}
 
-function clearComponentCache (id) {
-  // clear the entire component cache
-  if (!id) {
+function getMountNodes ($container, includeParent) {
+  var nodes = [].slice.call($container.querySelectorAll(durrutiElemSelector))
+
+  if (includeParent) {
+    nodes.unshift($container)
+  }
+
+  nodes.forEach(($node) => {
+    // cache component in node
+    $node._durruti = getCachedComponent($node)
+
+    // clean-up data attributes
+    $node.removeAttribute(durrutiAttr)
+  })
+
+  return nodes
+}
+
+function unmountNode ($node) {
+  var cachedComponent = getCachedComponent($node)
+
+  if (cachedComponent.unmount) {
+    cachedComponent.unmount($node)
+  }
+
+  // clear the component from the cache
+  clearComponentCache(cachedComponent)
+}
+
+function mountNode ($node) {
+  var cachedComponent = getCachedComponent($node)
+
+  if (cachedComponent.mount) {
+    cachedComponent.mount($node)
+  }
+}
+
+function clearComponentCache (component) {
+  if (component) {
+    componentCache[component._durrutiId] = null
+  } else {
+    // clear the entire component cache
     componentIndex = 0
     componentCache = {}
   }
-
-  componentCache[id] = null
 }
 
 function createFragment (template = '') {
@@ -82,30 +108,25 @@ function createFragment (template = '') {
   return $node.firstElementChild
 }
 
-function addComponentId (template, id) {
+function addComponentId (template, component) {
   // naive implementation of adding an attribute to the parent container.
   // so we don't depend on a dom parser.
   // downside is we can't warn that template MUST have a single parent (in Node.js).
-  var firstBracketIndex = template.indexOf('>')
-  var attr = ` ${durrutiAttr}="${id}"`
+
+  // check void elements first.
+  var firstBracketIndex = template.indexOf('/>')
+
+  // non-void elements
+  if (firstBracketIndex === -1) {
+    firstBracketIndex = template.indexOf('>')
+  }
+
+  var attr = ` ${durrutiAttr}="${component._durrutiId}"`
 
   return template.substr(0, firstBracketIndex) + attr + template.substr(firstBracketIndex)
 }
 
-function missingStateError () {
-  util.warn('state.js is not included. Store data will not be shared between client and server.')
-}
-
-// prevent errors when state.js is not included on the client
-class StateMock {
-  get () {
-    missingStateError()
-  }
-  set () {
-    missingStateError()
-  }
-}
-
+// traverse and find durruti nodes
 function traverseNodes ($container, arr) {
   var i
   for (i = 0; i < $container.children.length; i++) {
@@ -121,9 +142,24 @@ function traverseNodes ($container, arr) {
   return arr
 }
 
-function trav ($container) {
-  var arr = []
-  return traverseNodes($container, arr)
+function getComponentNodes ($container) {
+  var arr = traverseNodes($container, [])
+  arr.push($container)
+  return arr
+}
+
+function missingStateError () {
+  util.warn('state.js is not included. Store data will not be shared between client and server.')
+}
+
+// prevent errors when state.js is not included on the client
+class StateMock {
+  get () {
+    missingStateError()
+  }
+  set () {
+    missingStateError()
+  }
 }
 
 class Durruti {
@@ -146,11 +182,7 @@ class Durruti {
     }
 
     var template = durrutiComponent.render()
-    var componentHtml = addComponentId(template, durrutiComponent._durruti.id)
-//     var componentId
-    var cachedComponent
-    var componentNodes
-    var mountMap = []
+    var componentHtml = addComponentId(template, durrutiComponent)
 
     // mount and unmount in browser, when we specify a container.
     if (typeof window !== 'undefined' && $container) {
@@ -163,173 +195,40 @@ class Durruti {
         return
       }
 
-      var renderedHtml = $container.innerHTML
+      let componentNodes = []
 
       // if the container is a durruti element,
       // unmount it and it's children and replace the node.
-//       if ($container.getAttribute(durrutiAttr)) {
-      if ($container._durruti) {
+      if (getCachedComponent($container)) {
         // unmount components that are about to be removed from the dom.
-//         componentNodes = [].slice.call($container.querySelectorAll(durrutiElemSelector))
-        componentNodes = trav($container)
-        componentNodes.push($container)
-
-        componentNodes.forEach((node) => {
-//           componentId = node.getAttribute(durrutiAttr)
-//           cachedComponent = getCachedComponent(componentId)
-
-//           console.log('unmount', node)
-
-          cachedComponent = node._durruti
-          cachedComponent.unmount(node)
-
-          // clear the component from the cache
-//           clearComponentCache(componentId)
-        })
+        getComponentNodes($container).forEach(unmountNode)
 
         // convert the template string to a dom node
-        var $comp = createFragment(componentHtml)
+        var $newComponent = createFragment(componentHtml)
+        // needs to happen before patch,
+        // to remove the data attributes.
+        componentNodes = getMountNodes($newComponent, true)
 
-        // prepend the parent to the nodelist
-        componentNodes = [].slice.call($comp.querySelectorAll(durrutiElemSelector))
-        componentNodes.unshift($comp)
-
-        $comp._durruti = durrutiComponent
-
-        // TODO clean-up data attributes
-        componentNodes.forEach((node) => {
-          mountMap.push(node)
-          node.removeAttribute(durrutiAttr)
-
-          node._durruti = durrutiComponent
-        })
-
-        // insert to the dom component dom node
-//         $container.parentNode.replaceChild($comp, $container)
-        patch($container, $comp)
+        // morph old dom node into new one
+        patch($container, $newComponent)
       } else {
-        // if the component is not a durrti element,
+        // if the component is not a durruti element,
         // insert the template with innerHTML.
 
         // same html is already rendered
-        if (renderedHtml.trim() !== componentHtml.trim()) {
+        if ($container.innerHTML.trim() !== componentHtml.trim()) {
           $container.innerHTML = componentHtml
         }
 
-        componentNodes = [].slice.call($container.querySelectorAll(durrutiElemSelector))
-
-        // TODO clean-up data attributes
-        componentNodes.forEach((node) => {
-          mountMap.push(node)
-          node.removeAttribute(durrutiAttr)
-
-          node._durruti = durrutiComponent
-        })
-
-        $container._durruti = durrutiComponent
+        componentNodes = getMountNodes($container)
       }
 
       // mount newly added components
-//       componentNodes.forEach((node) => {
-//         componentId = node.getAttribute(durrutiAttr)
-//         cachedComponent = getCachedComponent(componentId)
-//         cachedComponent.mount(node)
-//       })
-
-      mountMap.forEach((node) => {
-//         cachedComponent = getCachedComponent(comp.id)
-//         cachedComponent.mount(comp.$container)
-
-//         console.log('mount', node)
-
-        node._durruti.mount(node)
-      })
+      componentNodes.forEach(mountNode)
     }
 
     return componentHtml
   }
-}
-
-function traverse ($node, $newNode, patches) {
-  // traverse
-  for (let i = 0; i < $node.childNodes.length; i++) {
-    patchElement($node.childNodes[i], $newNode.childNodes[i], patches)
-  }
-}
-
-function mapAttributes ($node, $newNode) {
-  var attrs = {}
-  var i
-
-  for (i = 0; i < $node.attributes.length; i++) {
-    attrs[$node.attributes[i].name] = null
-  }
-
-  for (i = 0; i < $newNode.attributes.length; i++) {
-    attrs[$newNode.attributes[i].name] = $newNode.attributes[i].value
-  }
-
-  return attrs
-}
-
-function patchAttrs ($node, $newNode) {
-  // map attributes
-  var attrs = mapAttributes($node, $newNode)
-
-  // add-change attributes
-  for (let prop in attrs) {
-    if (!attrs[prop]) {
-      $node.removeAttribute(prop)
-    } else {
-      $node.setAttribute(prop, attrs[prop])
-    }
-  }
-}
-
-function patchElement ($node, $newNode, patches) {
-  // faster than outerhtml
-  if ($node.isEqualNode($newNode)) {
-    return
-  }
-
-  var replace = false
-
-  // if one of them is not an element node,
-  // or the tag changed,
-  // or not the same number of children.
-  if ($node.nodeType !== 1 ||
-    $newNode.nodeType !== 1 ||
-    $node.tagName !== $newNode.tagName ||
-    $node.childNodes.length !== $newNode.childNodes.length) {
-    replace = true
-  } else {
-    // update attributes and traverse children
-    traverse($node, $newNode, patches)
-  }
-
-  // replace
-  patches.push({
-    node: $node,
-    newNode: $newNode,
-    replace: replace
-  })
-}
-
-function loopPatch (patch) {
-  if (patch.replace) {
-    patch.node.parentNode.replaceChild(patch.newNode, patch.node)
-  } else {
-    patchAttrs(patch.node, patch.newNode)
-  }
-
-  patch.node._durruti = patch.newNode._durruti
-}
-
-function patch ($node, $newNode) {
-  var patches = []
-  patchElement($node, $newNode, patches)
-
-  patches.forEach(loopPatch)
 }
 
 export default new Durruti()
