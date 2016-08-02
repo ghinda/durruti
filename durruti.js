@@ -57,7 +57,7 @@
   function patchElement($node, $newNode, patches) {
     // faster than outerhtml
     if ($node.isEqualNode($newNode)) {
-      return;
+      return [];
     }
 
     var replace = false;
@@ -87,11 +87,60 @@
       patch.node.parentNode.replaceChild(patch.newNode, patch.node);
     } else {
       patchAttrs(patch.node, patch.newNode);
+      removeListeners(patch.node);
     }
   }
 
   function patch($node, $newNode) {
-    patchElement($node, $newNode, []).forEach(loopPatch);
+    var patches = patchElement($node, $newNode, []);
+    patches.forEach(loopPatch);
+
+    // check if the $node was replaced by $newNode
+    if (patches[0] && patches[0].node === $node && patches[0].replace === true) {
+      return $newNode;
+    }
+
+    return $node;
+  }
+
+  // overwrite addeventlistener
+  // TODO add IE support
+  var events = {};
+
+  if (typeof window !== 'undefined') {
+    var originalAddEventListener = EventTarget.prototype.addEventListener;
+    EventTarget.prototype.addEventListener = function (type, fn, capture) {
+      events[this] = events[this] || [];
+      events[this].push({
+        type: type,
+        fn: fn,
+        capture: capture
+      });
+
+      originalAddEventListener.apply(this, arguments);
+    };
+  }
+
+  // traverse and remove all events listeners from nodes
+  // TODO clean-up all =on* events
+  function removeListeners($node) {
+    if (events[$node]) {
+      var nodeEvents = events[$node];
+
+      nodeEvents.forEach(function (event) {
+        $node.removeEventListener(event.type, event.fn, event.capture);
+      });
+
+      events[$node] = null;
+      delete events[$node];
+    }
+
+    var i;
+    for (i = 0; i < $node.children.length; i++) {
+      if ($node.children[i].children.length) {
+        removeListeners($node.children[i]);
+      }
+    }
   }
 
   var classCallCheck = function (instance, Constructor) {
@@ -151,11 +200,13 @@
     return $node._durruti || componentCache[$node.getAttribute(durrutiAttr)];
   }
 
-  function getMountNodes($container, includeParent) {
+  // remove custom data attributes,
+  // and cache the component on the DOM node.
+  function cleanAttrNodes($container, includeParent) {
     var nodes = [].slice.call($container.querySelectorAll(durrutiElemSelector));
 
     if (includeParent) {
-      nodes.unshift($container);
+      nodes.push($container);
     }
 
     nodes.forEach(function ($node) {
@@ -336,12 +387,14 @@
 
             // convert the template string to a dom node
             var $newComponent = createFragment(componentHtml);
-            // needs to happen before patch,
-            // to remove the data attributes.
-            componentNodes = getMountNodes($newComponent, true);
+            // remove the data attributes on the new node,
+            // before patch.
+            cleanAttrNodes($newComponent, true);
 
             // morph old dom node into new one
-            patch($container, $newComponent);
+            $container = patch($container, $newComponent);
+
+            componentNodes = getComponentNodes($container);
           } else {
             // if the component is not a durruti element,
             // insert the template with innerHTML.
@@ -351,7 +404,7 @@
               $container.innerHTML = componentHtml;
             }
 
-            componentNodes = getMountNodes($container);
+            componentNodes = cleanAttrNodes($container);
           }
 
           // mount newly added components

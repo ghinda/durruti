@@ -43,7 +43,7 @@ function patchAttrs ($node, $newNode) {
 function patchElement ($node, $newNode, patches) {
   // faster than outerhtml
   if ($node.isEqualNode($newNode)) {
-    return
+    return []
   }
 
   var replace = false
@@ -76,9 +76,61 @@ function loopPatch (patch) {
     patch.node.parentNode.replaceChild(patch.newNode, patch.node)
   } else {
     patchAttrs(patch.node, patch.newNode)
+    removeListeners(patch.node)
   }
 }
 
 export default function patch ($node, $newNode) {
-  patchElement($node, $newNode, []).forEach(loopPatch)
+  var patches = patchElement($node, $newNode, [])
+  patches.forEach(loopPatch)
+
+  // check if the $node was replaced by $newNode
+  if (patches[0] &&
+    patches[0].node === $node &&
+    patches[0].replace === true) {
+    return $newNode
+  }
+
+  return $node
 }
+
+// overwrite addeventlistener
+// TODO add IE support
+var events = {}
+
+if (typeof window !== 'undefined') {
+  var originalAddEventListener = EventTarget.prototype.addEventListener;
+  EventTarget.prototype.addEventListener = function(type, fn, capture) {
+    events[this] = events[this] || []
+    events[this].push({
+      type: type,
+      fn: fn,
+      capture: capture
+    })
+
+    originalAddEventListener.apply(this, arguments)
+  }
+}
+
+// traverse and remove all events listeners from nodes
+// TODO clean-up all =on* events
+function removeListeners ($node) {
+  if (events[$node]) {
+    var nodeEvents = events[$node]
+
+    nodeEvents.forEach((event) => {
+      $node.removeEventListener(event.type, event.fn, event.capture)
+    })
+
+    events[$node] = null
+    delete events[$node]
+  }
+
+  var i
+  for (i = 0; i < $node.children.length; i++) {
+    if ($node.children[i].children.length) {
+      removeListeners($node.children[i])
+    }
+  }
+}
+

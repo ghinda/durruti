@@ -38,11 +38,13 @@ function getCachedComponent ($node) {
   return $node._durruti || componentCache[$node.getAttribute(durrutiAttr)]
 }
 
-function getMountNodes ($container, includeParent) {
+// remove custom data attributes,
+// and cache the component on the DOM node.
+function cleanAttrNodes ($container, includeParent) {
   var nodes = [].slice.call($container.querySelectorAll(durrutiElemSelector))
 
   if (includeParent) {
-    nodes.unshift($container)
+    nodes.push($container)
   }
 
   nodes.forEach(($node) => {
@@ -205,12 +207,14 @@ class Durruti {
 
         // convert the template string to a dom node
         var $newComponent = createFragment(componentHtml)
-        // needs to happen before patch,
-        // to remove the data attributes.
-        componentNodes = getMountNodes($newComponent, true)
+        // remove the data attributes on the new node,
+        // before patch.
+        cleanAttrNodes($newComponent, true)
 
         // morph old dom node into new one
-        patch($container, $newComponent)
+        $container = patch($container, $newComponent)
+
+        componentNodes = getComponentNodes($container)
       } else {
         // if the component is not a durruti element,
         // insert the template with innerHTML.
@@ -220,7 +224,7 @@ class Durruti {
           $container.innerHTML = componentHtml
         }
 
-        componentNodes = getMountNodes($container)
+        componentNodes = cleanAttrNodes($container)
       }
 
       // mount newly added components
