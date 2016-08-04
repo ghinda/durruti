@@ -45,6 +45,9 @@ function patchAttrs ($node, $newNode) {
 function patchElement ($node, $newNode, patches) {
   // faster than outerhtml
   if ($node.isEqualNode($newNode)) {
+    // remove listeners on node and children
+    removeListeners($node, true)
+
     return []
   }
 
@@ -59,9 +62,10 @@ function patchElement ($node, $newNode, patches) {
     $node.childNodes.length !== $newNode.childNodes.length) {
     replace = true
   } else {
+    // remove listeners on node
     removeListeners($node)
 
-    // traverse children
+    // traverse childNodes
     traverse($node, $newNode, patches)
   }
 

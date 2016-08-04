@@ -16,7 +16,7 @@
    * Capture and remove event listeners.
    */
 
-  var removeListeners = function removeListeners() {};
+  var _removeListeners = function removeListeners() {};
 
   if (typeof window !== 'undefined') {
     var getDomEventTypes = function getDomEventTypes() {
@@ -50,6 +50,7 @@
     var originalAddEventListener;
 
     if (typeof window !== 'undefined') {
+
       // capture addEventListener
 
       // IE
@@ -63,8 +64,8 @@
       }
     }
 
-    // all events listeners from a node
-    removeListeners = function removeListeners($node) {
+    // traverse and remove all events listeners from nodes
+    _removeListeners = function removeListeners($node, traverse) {
       var nodeEvents = events[$node];
       if (nodeEvents) {
         // remove listeners
@@ -79,10 +80,19 @@
 
         events[$node] = null;
       }
+
+      // traverse element children
+      if (traverse && $node.children) {
+        for (var i = 0; i < $node.children.length; i++) {
+          if ($node.children[i].children.length) {
+            _removeListeners($node.children[i], true);
+          }
+        }
+      }
     };
   }
 
-  var removeListeners$1 = removeListeners;
+  var removeListeners = _removeListeners;
 
   function traverse($node, $newNode, patches) {
     // traverse
@@ -125,6 +135,9 @@
   function patchElement($node, $newNode, patches) {
     // faster than outerhtml
     if ($node.isEqualNode($newNode)) {
+      // remove listeners on node and children
+      removeListeners($node, true);
+
       return [];
     }
 
@@ -136,9 +149,10 @@
     if ($node.nodeType !== 1 || $newNode.nodeType !== 1 || $node.tagName !== $newNode.tagName || $node.childNodes.length !== $newNode.childNodes.length) {
       replace = true;
     } else {
-      removeListeners$1($node);
+      // remove listeners on node
+      removeListeners($node);
 
-      // traverse children
+      // traverse childNodes
       traverse($node, $newNode, patches);
     }
 
@@ -407,6 +421,8 @@
           }
 
           var componentNodes = [];
+          // convert the template string to a dom node
+          var $newComponent = createFragment(componentHtml);
 
           // if the container is a durruti element,
           // unmount it and it's children and replace the node.
@@ -414,8 +430,6 @@
             // unmount components that are about to be removed from the dom.
             getComponentNodes($container).forEach(unmountNode);
 
-            // convert the template string to a dom node
-            var $newComponent = createFragment(componentHtml);
             // remove the data attributes on the new node,
             // before patch.
             cleanAttrNodes($newComponent, true);
@@ -428,8 +442,8 @@
             // if the component is not a durruti element,
             // insert the template with innerHTML.
 
-            // same html is already rendered
-            if ($container.innerHTML.trim() !== componentHtml.trim()) {
+            // only if the same html is not already rendered
+            if (!$container.firstElementChild || !$container.firstElementChild.isEqualNode($newComponent)) {
               $container.innerHTML = componentHtml;
             }
 

@@ -198,6 +198,8 @@ class Durruti {
       }
 
       let componentNodes = []
+      // convert the template string to a dom node
+      var $newComponent = createFragment(componentHtml)
 
       // if the container is a durruti element,
       // unmount it and it's children and replace the node.
@@ -205,8 +207,6 @@ class Durruti {
         // unmount components that are about to be removed from the dom.
         getComponentNodes($container).forEach(unmountNode)
 
-        // convert the template string to a dom node
-        var $newComponent = createFragment(componentHtml)
         // remove the data attributes on the new node,
         // before patch.
         cleanAttrNodes($newComponent, true)
@@ -219,8 +219,9 @@ class Durruti {
         // if the component is not a durruti element,
         // insert the template with innerHTML.
 
-        // same html is already rendered
-        if ($container.innerHTML.trim() !== componentHtml.trim()) {
+        // only if the same html is not already rendered
+        if (!$container.firstElementChild ||
+          !$container.firstElementChild.isEqualNode($newComponent)) {
           $container.innerHTML = componentHtml
         }
 

@@ -36,6 +36,7 @@ if (typeof window !== 'undefined') {
   }
 
   if (typeof window !== 'undefined') {
+
     // capture addEventListener
 
     // IE
@@ -49,8 +50,8 @@ if (typeof window !== 'undefined') {
     }
   }
 
-  // all events listeners from a node
-  removeListeners = function ($node) {
+  // traverse and remove all events listeners from nodes
+  removeListeners = function ($node, traverse) {
     var nodeEvents = events[$node]
     if (nodeEvents) {
       // remove listeners
@@ -64,6 +65,15 @@ if (typeof window !== 'undefined') {
       })
 
       events[$node] = null
+    }
+
+    // traverse element children
+    if (traverse && $node.children) {
+      for (let i = 0; i < $node.children.length; i++) {
+        if ($node.children[i].children.length) {
+          removeListeners($node.children[i], true)
+        }
+      }
     }
   }
 }
