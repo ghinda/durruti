@@ -13,8 +13,76 @@
   }
 
   /* Durruti
-   * DOM patch - morphs a DOM node into another.
+   * Capture and remove event listeners.
    */
+
+  // capture all listeners
+  var events = {};
+
+  function getDomEventTypes() {
+    var eventTypes = [];
+    for (var attr in document) {
+      // starts with on
+      if (attr.substr(0, 2) === 'on') {
+        eventTypes.push(attr);
+      }
+    }
+
+    return eventTypes;
+  }
+
+  var domEventTypes = getDomEventTypes();
+
+  var originalAddEventListener;
+
+  function captureAddEventListener(type, fn, capture) {
+    originalAddEventListener.apply(this, arguments);
+
+    events[this] = events[this] || [];
+    events[this].push({
+      type: type,
+      fn: fn,
+      capture: capture
+    });
+  }
+
+  // capture addEventListener
+  if (typeof window !== 'undefined') {
+    // IE
+    if (window.Node.prototype.hasOwnProperty('addEventListener')) {
+      originalAddEventListener = window.Node.prototype.addEventListener;
+      window.Node.prototype.addEventListener = captureAddEventListener;
+    } else if (window.EventTarget.prototype.hasOwnProperty('addEventListener')) {
+      // standard
+      originalAddEventListener = window.EventTarget.prototype.addEventListener;
+      window.EventTarget.prototype.addEventListener = captureAddEventListener;
+    }
+  }
+
+  // traverse and remove all events listeners from nodes
+  function removeListeners($node) {
+    var nodeEvents = events[$node];
+    if (nodeEvents) {
+      // remove listeners
+      nodeEvents.forEach(function (event) {
+        $node.removeEventListener(event.type, event.fn, event.capture);
+      });
+
+      // remove on* listeners
+      domEventTypes.forEach(function (eventType) {
+        $node[eventType] = null;
+      });
+
+      events[$node] = null;
+    }
+
+    // traverse element children
+    for (var i = 0; i < $node.children.length; i++) {
+      if ($node.children[i].children.length) {
+        removeListeners($node.children[i]);
+      }
+    }
+  }
 
   function traverse($node, $newNode, patches) {
     // traverse
@@ -101,46 +169,6 @@
     }
 
     return $node;
-  }
-
-  // overwrite addeventlistener
-  // TODO add IE support
-  var events = {};
-
-  if (typeof window !== 'undefined') {
-    var originalAddEventListener = EventTarget.prototype.addEventListener;
-    EventTarget.prototype.addEventListener = function (type, fn, capture) {
-      events[this] = events[this] || [];
-      events[this].push({
-        type: type,
-        fn: fn,
-        capture: capture
-      });
-
-      originalAddEventListener.apply(this, arguments);
-    };
-  }
-
-  // traverse and remove all events listeners from nodes
-  // TODO clean-up all =on* events
-  function removeListeners($node) {
-    if (events[$node]) {
-      var nodeEvents = events[$node];
-
-      nodeEvents.forEach(function (event) {
-        $node.removeEventListener(event.type, event.fn, event.capture);
-      });
-
-      events[$node] = null;
-      delete events[$node];
-    }
-
-    var i;
-    for (i = 0; i < $node.children.length; i++) {
-      if ($node.children[i].children.length) {
-        removeListeners($node.children[i]);
-      }
-    }
   }
 
   var classCallCheck = function (instance, Constructor) {

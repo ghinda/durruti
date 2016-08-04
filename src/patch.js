@@ -2,6 +2,8 @@
  * DOM patch - morphs a DOM node into another.
  */
 
+import removeListeners from './listeners.js'
+
 function traverse ($node, $newNode, patches) {
   // traverse
   for (let i = 0; i < $node.childNodes.length; i++) {
@@ -92,45 +94,5 @@ export default function patch ($node, $newNode) {
   }
 
   return $node
-}
-
-// overwrite addeventlistener
-// TODO add IE support
-var events = {}
-
-if (typeof window !== 'undefined') {
-  var originalAddEventListener = EventTarget.prototype.addEventListener;
-  EventTarget.prototype.addEventListener = function(type, fn, capture) {
-    events[this] = events[this] || []
-    events[this].push({
-      type: type,
-      fn: fn,
-      capture: capture
-    })
-
-    originalAddEventListener.apply(this, arguments)
-  }
-}
-
-// traverse and remove all events listeners from nodes
-// TODO clean-up all =on* events
-function removeListeners ($node) {
-  if (events[$node]) {
-    var nodeEvents = events[$node]
-
-    nodeEvents.forEach((event) => {
-      $node.removeEventListener(event.type, event.fn, event.capture)
-    })
-
-    events[$node] = null
-    delete events[$node]
-  }
-
-  var i
-  for (i = 0; i < $node.children.length; i++) {
-    if ($node.children[i].children.length) {
-      removeListeners($node.children[i])
-    }
-  }
 }
 
