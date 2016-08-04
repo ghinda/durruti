@@ -3,7 +3,7 @@
  */
 
 import * as util from './util'
-import patch from './patch'
+import * as dom from './dom'
 
 const durrutiAttr = 'data-durruti-id'
 const durrutiElemSelector = `[${durrutiAttr}]`
@@ -128,28 +128,6 @@ function addComponentId (template, component) {
   return template.substr(0, firstBracketIndex) + attr + template.substr(firstBracketIndex)
 }
 
-// traverse and find durruti nodes
-function traverseNodes ($container, arr) {
-  var i
-  for (i = 0; i < $container.children.length; i++) {
-    if ($container.children[i].children.length) {
-      traverseNodes($container.children[i], arr)
-    }
-
-    if ($container.children[i]._durruti) {
-      arr.push($container.children[i])
-    }
-  }
-
-  return arr
-}
-
-function getComponentNodes ($container) {
-  var arr = traverseNodes($container, [])
-  arr.push($container)
-  return arr
-}
-
 function missingStateError () {
   util.warn('state.js is not included. Store data will not be shared between client and server.')
 }
@@ -205,16 +183,14 @@ class Durruti {
       // unmount it and it's children and replace the node.
       if (getCachedComponent($container)) {
         // unmount components that are about to be removed from the dom.
-        getComponentNodes($container).forEach(unmountNode)
+        dom.getComponentNodes($container, true).forEach(unmountNode)
 
         // remove the data attributes on the new node,
         // before patch.
         cleanAttrNodes($newComponent, true)
 
         // morph old dom node into new one
-        $container = patch($container, $newComponent)
-
-        componentNodes = getComponentNodes($container)
+        componentNodes = dom.patch($container, $newComponent)
       } else {
         // if the component is not a durruti element,
         // insert the template with innerHTML.

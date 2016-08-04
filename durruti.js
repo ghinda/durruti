@@ -18,50 +18,47 @@
 
   var _removeListeners = function removeListeners() {};
 
-  if (typeof window !== 'undefined') {
-    var getDomEventTypes = function getDomEventTypes() {
-      var eventTypes = [];
-      for (var attr in document) {
-        // starts with on
-        if (attr.substr(0, 2) === 'on') {
-          eventTypes.push(attr);
-        }
+  // capture all listeners
+  var events = {};
+
+  function getDomEventTypes() {
+    var eventTypes = [];
+    for (var attr in document) {
+      // starts with on
+      if (attr.substr(0, 2) === 'on') {
+        eventTypes.push(attr);
       }
+    }
 
-      return eventTypes;
-    };
+    return eventTypes;
+  }
 
-    var captureAddEventListener = function captureAddEventListener(type, fn, capture) {
-      originalAddEventListener.apply(this, arguments);
+  var originalAddEventListener;
 
-      events[this] = events[this] || [];
-      events[this].push({
-        type: type,
-        fn: fn,
-        capture: capture
-      });
-    };
+  function captureAddEventListener(type, fn, capture) {
+    originalAddEventListener.apply(this, arguments);
 
-    // capture all listeners
-    var events = {};
+    events[this] = events[this] || [];
+    events[this].push({
+      type: type,
+      fn: fn,
+      capture: capture
+    });
+  }
 
+  if (typeof window !== 'undefined') {
     var domEventTypes = getDomEventTypes();
 
-    var originalAddEventListener;
+    // capture addEventListener
 
-    if (typeof window !== 'undefined') {
-
-      // capture addEventListener
-
-      // IE
-      if (window.Node.prototype.hasOwnProperty('addEventListener')) {
-        originalAddEventListener = window.Node.prototype.addEventListener;
-        window.Node.prototype.addEventListener = captureAddEventListener;
-      } else if (window.EventTarget.prototype.hasOwnProperty('addEventListener')) {
-        // standard
-        originalAddEventListener = window.EventTarget.prototype.addEventListener;
-        window.EventTarget.prototype.addEventListener = captureAddEventListener;
-      }
+    // IE
+    if (window.Node.prototype.hasOwnProperty('addEventListener')) {
+      originalAddEventListener = window.Node.prototype.addEventListener;
+      window.Node.prototype.addEventListener = captureAddEventListener;
+    } else if (window.EventTarget.prototype.hasOwnProperty('addEventListener')) {
+      // standard
+      originalAddEventListener = window.EventTarget.prototype.addEventListener;
+      window.EventTarget.prototype.addEventListener = captureAddEventListener;
     }
 
     // traverse and remove all events listeners from nodes
@@ -94,10 +91,29 @@
 
   var removeListeners = _removeListeners;
 
-  function traverse($node, $newNode, patches) {
+  // traverse and find durruti nodes
+  function getComponentNodes($container, traverse) {
+    var arr = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];
+
+    if ($container._durruti) {
+      arr.push($container);
+    }
+
+    if (traverse && $container.children) {
+      for (var i = 0; i < $container.children.length; i++) {
+        if ($container.children[i].children.length) {
+          getComponentNodes($container.children[i], true, arr);
+        }
+      }
+    }
+
+    return arr;
+  }
+
+  function traverse($node, $newNode, fragment) {
     // traverse
     for (var i = 0; i < $node.childNodes.length; i++) {
-      patchElement($node.childNodes[i], $newNode.childNodes[i], patches);
+      patchElement($node.childNodes[i], $newNode.childNodes[i], fragment);
     }
   }
 
@@ -132,13 +148,16 @@
     $node._durruti = $newNode._durruti;
   }
 
-  function patchElement($node, $newNode, patches) {
+  function patchElement($node, $newNode, fragment) {
     // faster than outerhtml
     if ($node.isEqualNode($newNode)) {
       // remove listeners on node and children
       removeListeners($node, true);
 
-      return [];
+      // get component nodes
+      Array.prototype.push.apply(fragment.components, getComponentNodes($node, true));
+
+      return fragment;
     }
 
     var replace = false;
@@ -148,22 +167,28 @@
     // or not the same number of children.
     if ($node.nodeType !== 1 || $newNode.nodeType !== 1 || $node.tagName !== $newNode.tagName || $node.childNodes.length !== $newNode.childNodes.length) {
       replace = true;
+
+      // get component nodes
+      Array.prototype.push.apply(fragment.components, getComponentNodes($newNode, true));
     } else {
       // remove listeners on node
       removeListeners($node);
 
+      // get component nodes
+      Array.prototype.push.apply(fragment.components, getComponentNodes($node));
+
       // traverse childNodes
-      traverse($node, $newNode, patches);
+      traverse($node, $newNode, fragment);
     }
 
     // replace or update attributes
-    patches.push({
+    fragment.patches.push({
       node: $node,
       newNode: $newNode,
       replace: replace
     });
 
-    return patches;
+    return fragment;
   }
 
   function loopPatch(patch) {
@@ -175,15 +200,10 @@
   }
 
   function patch($node, $newNode) {
-    var patches = patchElement($node, $newNode, []);
-    patches.forEach(loopPatch);
+    var fragment = patchElement($node, $newNode, { patches: [], components: [] });
+    fragment.patches.forEach(loopPatch);
 
-    // check if the $node was replaced by $newNode
-    if (patches[0] && patches[0].node === $node && patches[0].replace === true) {
-      return $newNode;
-    }
-
-    return $node;
+    return fragment.components;
   }
 
   var classCallCheck = function (instance, Constructor) {
@@ -335,28 +355,6 @@
     return template.substr(0, firstBracketIndex) + attr + template.substr(firstBracketIndex);
   }
 
-  // traverse and find durruti nodes
-  function traverseNodes($container, arr) {
-    var i;
-    for (i = 0; i < $container.children.length; i++) {
-      if ($container.children[i].children.length) {
-        traverseNodes($container.children[i], arr);
-      }
-
-      if ($container.children[i]._durruti) {
-        arr.push($container.children[i]);
-      }
-    }
-
-    return arr;
-  }
-
-  function getComponentNodes($container) {
-    var arr = traverseNodes($container, []);
-    arr.push($container);
-    return arr;
-  }
-
   function missingStateError() {
     warn('state.js is not included. Store data will not be shared between client and server.');
   }
@@ -428,16 +426,14 @@
           // unmount it and it's children and replace the node.
           if (getCachedComponent($container)) {
             // unmount components that are about to be removed from the dom.
-            getComponentNodes($container).forEach(unmountNode);
+            getComponentNodes($container, true).forEach(unmountNode);
 
             // remove the data attributes on the new node,
             // before patch.
             cleanAttrNodes($newComponent, true);
 
             // morph old dom node into new one
-            $container = patch($container, $newComponent);
-
-            componentNodes = getComponentNodes($container);
+            componentNodes = patch($container, $newComponent);
           } else {
             // if the component is not a durruti element,
             // insert the template with innerHTML.
