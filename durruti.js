@@ -16,73 +16,81 @@
    * Capture and remove event listeners.
    */
 
-  // capture all listeners
-  var events = {};
+  var _removeListeners = function removeListeners() {};
 
-  function getDomEventTypes() {
-    var eventTypes = [];
-    for (var attr in document) {
-      // starts with on
-      if (attr.substr(0, 2) === 'on') {
-        eventTypes.push(attr);
-      }
-    }
-
-    return eventTypes;
-  }
-
-  var domEventTypes = getDomEventTypes();
-
-  var originalAddEventListener;
-
-  function captureAddEventListener(type, fn, capture) {
-    originalAddEventListener.apply(this, arguments);
-
-    events[this] = events[this] || [];
-    events[this].push({
-      type: type,
-      fn: fn,
-      capture: capture
-    });
-  }
-
-  // capture addEventListener
   if (typeof window !== 'undefined') {
-    // IE
-    if (window.Node.prototype.hasOwnProperty('addEventListener')) {
-      originalAddEventListener = window.Node.prototype.addEventListener;
-      window.Node.prototype.addEventListener = captureAddEventListener;
-    } else if (window.EventTarget.prototype.hasOwnProperty('addEventListener')) {
-      // standard
-      originalAddEventListener = window.EventTarget.prototype.addEventListener;
-      window.EventTarget.prototype.addEventListener = captureAddEventListener;
-    }
-  }
+    var getDomEventTypes = function getDomEventTypes() {
+      var eventTypes = [];
+      for (var attr in document) {
+        // starts with on
+        if (attr.substr(0, 2) === 'on') {
+          eventTypes.push(attr);
+        }
+      }
 
-  // traverse and remove all events listeners from nodes
-  function removeListeners($node) {
-    var nodeEvents = events[$node];
-    if (nodeEvents) {
-      // remove listeners
-      nodeEvents.forEach(function (event) {
-        $node.removeEventListener(event.type, event.fn, event.capture);
+      return eventTypes;
+    };
+
+    var captureAddEventListener = function captureAddEventListener(type, fn, capture) {
+      originalAddEventListener.apply(this, arguments);
+
+      events[this] = events[this] || [];
+      events[this].push({
+        type: type,
+        fn: fn,
+        capture: capture
       });
+    };
 
-      // remove on* listeners
-      domEventTypes.forEach(function (eventType) {
-        $node[eventType] = null;
-      });
+    // capture all listeners
+    var events = {};
 
-      events[$node] = null;
-    }
+    var domEventTypes = getDomEventTypes();
 
-    // traverse element children
-    for (var i = 0; i < $node.children.length; i++) {
-      if ($node.children[i].children.length) {
-        removeListeners($node.children[i]);
+    var originalAddEventListener;
+
+    if (typeof window !== 'undefined') {
+
+      // capture addEventListener
+
+      // IE
+      if (window.Node.prototype.hasOwnProperty('addEventListener')) {
+        originalAddEventListener = window.Node.prototype.addEventListener;
+        window.Node.prototype.addEventListener = captureAddEventListener;
+      } else if (window.EventTarget.prototype.hasOwnProperty('addEventListener')) {
+        // standard
+        originalAddEventListener = window.EventTarget.prototype.addEventListener;
+        window.EventTarget.prototype.addEventListener = captureAddEventListener;
       }
     }
+
+    // traverse and remove all events listeners from nodes
+    _removeListeners = function removeListeners($node) {
+      var nodeEvents = events[$node];
+      if (nodeEvents) {
+        // remove listeners
+        nodeEvents.forEach(function (event) {
+          $node.removeEventListener(event.type, event.fn, event.capture);
+        });
+
+        // remove on* listeners
+        domEventTypes.forEach(function (eventType) {
+          $node[eventType] = null;
+        });
+
+        events[$node] = null;
+      }
+
+      // traverse element children
+      for (var i = 0; i < $node.children.length; i++) {
+        if ($node.children[i].children.length) {
+          _removeListeners($node.children[i]);
+        }
+      }
+    };
   }
+
+  var removeListeners = _removeListeners;
 
   function traverse($node, $newNode, patches) {
     // traverse
