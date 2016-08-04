@@ -16,7 +16,7 @@
    * Capture and remove event listeners.
    */
 
-  var _removeListeners = function removeListeners() {};
+  var removeListeners = function removeListeners() {};
 
   if (typeof window !== 'undefined') {
     var getDomEventTypes = function getDomEventTypes() {
@@ -50,7 +50,6 @@
     var originalAddEventListener;
 
     if (typeof window !== 'undefined') {
-
       // capture addEventListener
 
       // IE
@@ -64,8 +63,8 @@
       }
     }
 
-    // traverse and remove all events listeners from nodes
-    _removeListeners = function removeListeners($node) {
+    // all events listeners from a node
+    removeListeners = function removeListeners($node) {
       var nodeEvents = events[$node];
       if (nodeEvents) {
         // remove listeners
@@ -80,17 +79,10 @@
 
         events[$node] = null;
       }
-
-      // traverse element children
-      for (var i = 0; i < $node.children.length; i++) {
-        if ($node.children[i].children.length) {
-          _removeListeners($node.children[i]);
-        }
-      }
     };
   }
 
-  var removeListeners = _removeListeners;
+  var removeListeners$1 = removeListeners;
 
   function traverse($node, $newNode, patches) {
     // traverse
@@ -144,6 +136,8 @@
     if ($node.nodeType !== 1 || $newNode.nodeType !== 1 || $node.tagName !== $newNode.tagName || $node.childNodes.length !== $newNode.childNodes.length) {
       replace = true;
     } else {
+      removeListeners$1($node);
+
       // traverse children
       traverse($node, $newNode, patches);
     }
@@ -163,7 +157,6 @@
       patch.node.parentNode.replaceChild(patch.newNode, patch.node);
     } else {
       patchAttrs(patch.node, patch.newNode);
-      removeListeners(patch.node);
     }
   }
 

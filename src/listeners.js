@@ -36,7 +36,6 @@ if (typeof window !== 'undefined') {
   }
 
   if (typeof window !== 'undefined') {
-
     // capture addEventListener
 
     // IE
@@ -50,7 +49,7 @@ if (typeof window !== 'undefined') {
     }
   }
 
-  // traverse and remove all events listeners from nodes
+  // all events listeners from a node
   removeListeners = function ($node) {
     var nodeEvents = events[$node]
     if (nodeEvents) {
@@ -65,13 +64,6 @@ if (typeof window !== 'undefined') {
       })
 
       events[$node] = null
-    }
-
-    // traverse element children
-    for (let i = 0; i < $node.children.length; i++) {
-      if ($node.children[i].children.length) {
-        removeListeners($node.children[i])
-      }
     }
   }
 }

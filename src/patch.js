@@ -59,6 +59,8 @@ function patchElement ($node, $newNode, patches) {
     $node.childNodes.length !== $newNode.childNodes.length) {
     replace = true
   } else {
+    removeListeners($node)
+
     // traverse children
     traverse($node, $newNode, patches)
   }
@@ -78,7 +80,6 @@ function loopPatch (patch) {
     patch.node.parentNode.replaceChild(patch.newNode, patch.node)
   } else {
     patchAttrs(patch.node, patch.newNode)
-    removeListeners(patch.node)
   }
 }
 
