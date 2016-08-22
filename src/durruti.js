@@ -3,9 +3,10 @@
  */
 
 import * as util from './util'
+import * as dom from './dom'
 
-var durrutiAttr = 'data-durruti-id'
-var durrutiElemSelector = `[${durrutiAttr}]`
+const durrutiAttr = 'data-durruti-id'
+const durrutiElemSelector = `[${durrutiAttr}]`
 var componentCache = {}
 var componentIndex = 0
 
@@ -17,46 +18,73 @@ function decorate (Comp) {
   if (typeof Comp === 'function') {
     component = new Comp()
   } else {
-    component = Comp
+    // make sure we don't change the id on a cached component
+    component = Object.create(Comp)
   }
-
-  // get the durruti specific properties
-  var props = component._durruti || {}
 
   // components get a new id on render,
   // so we can clear the previous component cache.
-  props.id = String(componentIndex++)
-
-  // set defaults for mount and unmount
-  if (typeof component.mount !== 'function') {
-    component.mount = function () {}
-  }
-
-  if (typeof component.unmount !== 'function') {
-    component.unmount = function () {}
-  }
-
-  // set the new properties on the component
-  component._durruti = props
+  component._durrutiId = String(componentIndex++)
 
   // cache component
-  componentCache[props.id] = component
+  componentCache[component._durrutiId] = component
 
   return component
 }
 
-function getCachedComponent (id) {
-  return componentCache[id]
+function getCachedComponent ($node) {
+  // get the component from the dom node - rendered in browser.
+  // or get it from the component cache - rendered on the server.
+  return $node._durruti || componentCache[$node.getAttribute(durrutiAttr)]
 }
 
-function clearComponentCache (id) {
-  // clear the entire component cache
-  if (!id) {
+// remove custom data attributes,
+// and cache the component on the DOM node.
+function cleanAttrNodes ($container, includeParent) {
+  var nodes = [].slice.call($container.querySelectorAll(durrutiElemSelector))
+
+  if (includeParent) {
+    nodes.push($container)
+  }
+
+  nodes.forEach(($node) => {
+    // cache component in node
+    $node._durruti = getCachedComponent($node)
+
+    // clean-up data attributes
+    $node.removeAttribute(durrutiAttr)
+  })
+
+  return nodes
+}
+
+function unmountNode ($node) {
+  var cachedComponent = getCachedComponent($node)
+
+  if (cachedComponent.unmount) {
+    cachedComponent.unmount($node)
+  }
+
+  // clear the component from the cache
+  clearComponentCache(cachedComponent)
+}
+
+function mountNode ($node) {
+  var cachedComponent = getCachedComponent($node)
+
+  if (cachedComponent.mount) {
+    cachedComponent.mount($node)
+  }
+}
+
+function clearComponentCache (component) {
+  if (component) {
+    componentCache[component._durrutiId] = null
+  } else {
+    // clear the entire component cache
     componentIndex = 0
     componentCache = {}
   }
-
-  componentCache[id] = null
 }
 
 function createFragment (template = '') {
@@ -82,12 +110,20 @@ function createFragment (template = '') {
   return $node.firstElementChild
 }
 
-function addComponentId (template, id) {
+function addComponentId (template, component) {
   // naive implementation of adding an attribute to the parent container.
   // so we don't depend on a dom parser.
   // downside is we can't warn that template MUST have a single parent (in Node.js).
-  var firstBracketIndex = template.indexOf('>')
-  var attr = ` ${durrutiAttr}="${id}"`
+
+  // check void elements first.
+  var firstBracketIndex = template.indexOf('/>')
+
+  // non-void elements
+  if (firstBracketIndex === -1) {
+    firstBracketIndex = template.indexOf('>')
+  }
+
+  var attr = ` ${durrutiAttr}="${component._durrutiId}"`
 
   return template.substr(0, firstBracketIndex) + attr + template.substr(firstBracketIndex)
 }
@@ -126,10 +162,7 @@ class Durruti {
     }
 
     var template = durrutiComponent.render()
-    var componentHtml = addComponentId(template, durrutiComponent._durruti.id)
-    var componentId
-    var cachedComponent
-    var componentNodes
+    var componentHtml = addComponentId(template, durrutiComponent)
 
     // mount and unmount in browser, when we specify a container.
     if (typeof window !== 'undefined' && $container) {
@@ -142,51 +175,37 @@ class Durruti {
         return
       }
 
-      var renderedHtml = $container.innerHTML
+      let componentNodes = []
+      // convert the template string to a dom node
+      var $newComponent = createFragment(componentHtml)
 
       // if the container is a durruti element,
       // unmount it and it's children and replace the node.
-      if ($container.getAttribute(durrutiAttr)) {
+      if (getCachedComponent($container)) {
         // unmount components that are about to be removed from the dom.
-        componentNodes = [].slice.call($container.querySelectorAll(durrutiElemSelector))
-        componentNodes.push($container)
+        dom.getComponentNodes($container, true).forEach(unmountNode)
 
-        componentNodes.forEach((node) => {
-          componentId = node.getAttribute(durrutiAttr)
-          cachedComponent = getCachedComponent(componentId)
-          cachedComponent.unmount(node)
+        // remove the data attributes on the new node,
+        // before patch.
+        cleanAttrNodes($newComponent, true)
 
-          // clear the component from the cache
-          clearComponentCache(componentId)
-        })
-
-        // convert the template string to a dom node
-        var $comp = createFragment(componentHtml)
-
-        // insert to the dom component dom node
-        $container.parentNode.replaceChild($comp, $container)
-
-        // prepend the parent to the nodelist
-        componentNodes = [].slice.call($comp.querySelectorAll(durrutiElemSelector))
-        componentNodes.unshift($comp)
+        // morph old dom node into new one
+        componentNodes = dom.patch($container, $newComponent)
       } else {
-        // if the component is not a durrti element,
+        // if the component is not a durruti element,
         // insert the template with innerHTML.
 
-        // same html is already rendered
-        if (renderedHtml.trim() !== componentHtml.trim()) {
+        // only if the same html is not already rendered
+        if (!$container.firstElementChild ||
+          !$container.firstElementChild.isEqualNode($newComponent)) {
           $container.innerHTML = componentHtml
         }
 
-        componentNodes = [].slice.call($container.querySelectorAll(durrutiElemSelector))
+        componentNodes = cleanAttrNodes($container)
       }
 
       // mount newly added components
-      componentNodes.forEach((node) => {
-        componentId = node.getAttribute(durrutiAttr)
-        cachedComponent = getCachedComponent(componentId)
-        cachedComponent.mount(node)
-      })
+      componentNodes.forEach(mountNode)
     }
 
     return componentHtml
