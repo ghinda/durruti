@@ -58,6 +58,10 @@ var createClass = function () {
   };
 }();
 
+/* Durruti
+ * Static site generator.
+ */
+
 function fetch(params, callback) {
   params = extend(params, {
     host: 'localhost',

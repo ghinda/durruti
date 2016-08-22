@@ -2,7 +2,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('durruti/state')) :
   typeof define === 'function' && define.amd ? define(['durruti/state'], factory) :
   (global.durruti = global.durruti || {}, global.durruti.Store = factory(global.durruti._state));
-}(this, function (state) { 'use strict';
+}(this, (function (state) { 'use strict';
 
   state = 'default' in state ? state['default'] : state;
 
@@ -33,6 +33,10 @@
 
     return extended;
   }
+
+  /* Durruti
+   * Data store with change events.
+   */
 
   function Store(name, options) {
     options = options || {};
@@ -127,5 +131,5 @@
 
   return Store;
 
-}));
+})));
 //# sourceMappingURL=store.js.map

@@ -2,7 +2,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global.durruti = factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
   var DURRUTI_DEBUG = true;
 
@@ -90,6 +90,10 @@
   }
 
   var removeListeners = _removeListeners;
+
+  /* Durruti
+   * DOM patch - morphs a DOM node into another.
+   */
 
   // traverse and find durruti nodes
   function getComponentNodes($container, traverse) {
@@ -229,6 +233,10 @@
       return Constructor;
     };
   }();
+
+  /* Durruti
+   * Micro Isomorphic JavaScript library for building user interfaces.
+   */
 
   var durrutiAttr = 'data-durruti-id';
   var durrutiElemSelector = '[' + durrutiAttr + ']';
@@ -460,5 +468,5 @@
 
   return durruti;
 
-}));
+})));
 //# sourceMappingURL=durruti.js.map
