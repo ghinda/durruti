@@ -6,7 +6,7 @@ var namespace = 'DURRUTI'
 
 var data = {}
 
-class State {
+export default class State {
   get (key) {
     if (typeof window !== 'undefined') {
       if (window[namespace]) {
@@ -33,5 +33,3 @@ class State {
     `
   }
 }
-
-export default new State()

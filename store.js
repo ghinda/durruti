@@ -2,9 +2,9 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('durruti/state')) :
   typeof define === 'function' && define.amd ? define(['durruti/state'], factory) :
   (global.durruti = global.durruti || {}, global.durruti.Store = factory(global.durruti._state));
-}(this, (function (state) { 'use strict';
+}(this, (function (State) { 'use strict';
 
-  state = 'default' in state ? state['default'] : state;
+  State = 'default' in State ? State['default'] : State;
 
   /* Durruti
    * Utils.
@@ -38,6 +38,8 @@
    * Data store with change events.
    */
 
+  var defaultState = new State();
+
   function Store(name, options) {
     options = options || {};
 
@@ -48,7 +50,8 @@
     }
 
     this.options = extend(options, {
-      history: historySupport
+      history: historySupport,
+      state: defaultState
     });
 
     this.events = {
@@ -60,7 +63,7 @@
     // if a store name is defined, share state
     if (name) {
       // check if any data in sharedState
-      var stateValue = state.get(name);
+      var stateValue = this.options.state.get(name);
       if (stateValue) {
         this.data.push(stateValue);
       }
@@ -69,7 +72,7 @@
 
       // save data to shared state
       this.on('change', function () {
-        state.set(name, self.get());
+        self.options.state.set(name, self.get());
       });
     }
   }

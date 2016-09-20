@@ -68,9 +68,7 @@
     return State;
   }();
 
-  var state = new State();
-
-  return state;
+  return State;
 
 })));
 //# sourceMappingURL=state.js.map

@@ -2,8 +2,10 @@
  * Data store with change events.
  */
 
-import state from 'durruti/state'
+import State from 'durruti/state'
 import * as util from './util'
+
+var defaultState = new State()
 
 function Store (name, options) {
   options = options || {}
@@ -15,7 +17,8 @@ function Store (name, options) {
   }
 
   this.options = util.extend(options, {
-    history: historySupport
+    history: historySupport,
+    state: defaultState
   })
 
   this.events = {
@@ -27,7 +30,7 @@ function Store (name, options) {
   // if a store name is defined, share state
   if (name) {
     // check if any data in sharedState
-    var stateValue = state.get(name)
+    var stateValue = this.options.state.get(name)
     if (stateValue) {
       this.data.push(stateValue)
     }
@@ -36,7 +39,7 @@ function Store (name, options) {
 
     // save data to shared state
     this.on('change', function () {
-      state.set(name, self.get())
+      self.options.state.set(name, self.get())
     })
   }
 }
