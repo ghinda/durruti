@@ -171,16 +171,29 @@ In the browser, just include `state.js` and set a unique name for each Store. (e
 
 On the server, render the output of the `render` method in the HTML output.
 
+You can get the State instance from any one of your stores.
+
 ```javascript
 var express = require('express')
 var app = express()
-var state = require('durruti/state')
+var listStore = new Store('store123')
 
 app.get('/:route', function (req, res) {
-  res.send(durruti.renderStatic('<html><body><div id="app">' + durruti.render(Main) + '</div>' + state.render() + '</body></html>'))
+  res.send(durruti.renderStatic('<html><body><div id="app">' + durruti.render(Main) + '</div>' + listStore.options.state.render() + '</body></html>'))
 })
 ```
 
+#### Custom state
+
+Stores can use a custom state instance, so they don't use the same global instance.
+
+```javascript
+var State = require('durruti/state')
+var customState = new State()
+var storeWithCustomState = new Store('uid', {
+  state: customState
+})
+```
 
 ## License
 
