@@ -62,7 +62,7 @@
     }, {
       key: 'render',
       value: function render() {
-        return '\n      <script>\n      ;(function(){\n        window[\'' + namespace + '\'] = JSON.parse(\'' + JSON.stringify(data) + '\')\n      }());\n      </script>\n    ';
+        return '\n      <script>\n      ;(function(){\n        window[\'' + namespace + '\'] = ' + JSON.stringify(data) + '\n      }());\n      </script>\n    ';
       }
     }]);
     return State;

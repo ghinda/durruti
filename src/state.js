@@ -27,7 +27,7 @@ export default class State {
     return `
       <script>
       ;(function(){
-        window['${namespace}'] = JSON.parse('${JSON.stringify(data)}')
+        window['${namespace}'] = ${JSON.stringify(data)}
       }());
       </script>
     `
