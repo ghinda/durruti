@@ -34,11 +34,11 @@
 
   var namespace = 'DURRUTI';
 
-  var data = {};
-
   var State = function () {
     function State() {
       classCallCheck(this, State);
+
+      this.data = {};
     }
 
     createClass(State, [{
@@ -51,18 +51,18 @@
             return null;
           }
         } else {
-          return data[key];
+          return this.data[key];
         }
       }
     }, {
       key: 'set',
       value: function set(key, value) {
-        data[key] = value;
+        this.data[key] = value;
       }
     }, {
       key: 'render',
       value: function render() {
-        return '\n      <script>\n      ;(function(){\n        window[\'' + namespace + '\'] = ' + JSON.stringify(data) + '\n      }());\n      </script>\n    ';
+        return '\n      <script>\n      ;(function(){\n        window[\'' + namespace + '\'] = ' + JSON.stringify(this.data) + '\n      }());\n      </script>\n    ';
       }
     }]);
     return State;

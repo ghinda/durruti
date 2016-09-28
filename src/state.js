@@ -4,9 +4,11 @@
 
 var namespace = 'DURRUTI'
 
-var data = {}
-
 export default class State {
+  constructor () {
+    this.data = {}
+  }
+
   get (key) {
     if (typeof window !== 'undefined') {
       if (window[namespace]) {
@@ -15,19 +17,19 @@ export default class State {
         return null
       }
     } else {
-      return data[key]
+      return this.data[key]
     }
   }
 
   set (key, value) {
-    data[key] = value
+    this.data[key] = value
   }
 
   render () {
     return `
       <script>
       ;(function(){
-        window['${namespace}'] = ${JSON.stringify(data)}
+        window['${namespace}'] = ${JSON.stringify(this.data)}
       }());
       </script>
     `
