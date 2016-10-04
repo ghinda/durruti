@@ -91,9 +91,7 @@
       // traverse element children
       if (traverse && $node.children) {
         for (var i = 0; i < $node.children.length; i++) {
-          if ($node.children[i].children.length) {
-            _removeListeners($node.children[i], true);
-          }
+          _removeListeners($node.children[i], true);
         }
       }
     };

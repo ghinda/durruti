@@ -69,9 +69,7 @@ if (util.isClient) {
     // traverse element children
     if (traverse && $node.children) {
       for (let i = 0; i < $node.children.length; i++) {
-        if ($node.children[i].children.length) {
-          removeListeners($node.children[i], true)
-        }
+        removeListeners($node.children[i], true)
       }
     }
   }
