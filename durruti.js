@@ -4,6 +4,16 @@
   (global.durruti = factory());
 }(this, (function () { 'use strict';
 
+  /* Durruti
+   * Utils.
+   */
+
+  function hasWindow() {
+    return typeof window !== 'undefined';
+  }
+
+  var isClient = hasWindow();
+
   var DURRUTI_DEBUG = true;
 
   function warn() {
@@ -46,7 +56,7 @@
     });
   }
 
-  if (typeof window !== 'undefined') {
+  if (isClient) {
     var domEventTypes = getDomEventTypes();
 
     // capture addEventListener
@@ -364,36 +374,9 @@
     return template.substr(0, firstBracketIndex) + attr + template.substr(firstBracketIndex);
   }
 
-  function missingStateError() {
-    warn('state.js is not included. Store data will not be shared between client and server.');
-  }
-
-  // prevent errors when state.js is not included on the client
-
-  var StateMock = function () {
-    function StateMock() {
-      classCallCheck(this, StateMock);
-    }
-
-    createClass(StateMock, [{
-      key: 'get',
-      value: function get() {
-        missingStateError();
-      }
-    }, {
-      key: 'set',
-      value: function set() {
-        missingStateError();
-      }
-    }]);
-    return StateMock;
-  }();
-
   var Durruti = function () {
     function Durruti() {
       classCallCheck(this, Durruti);
-
-      this._state = new StateMock();
     }
 
     createClass(Durruti, [{
@@ -417,7 +400,7 @@
         var componentHtml = addComponentId(template, durrutiComponent);
 
         // mount and unmount in browser, when we specify a container.
-        if (typeof window !== 'undefined' && $container) {
+        if (isClient && $container) {
           // check if the container is still in the DOM.
           // when running multiple parallel render's, the container
           // is removed by the previous render, but the reference still in memory.

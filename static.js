@@ -6,10 +6,6 @@ var fs = _interopDefault(require('fs'));
 var http = _interopDefault(require('http'));
 var mkdirp = _interopDefault(require('mkdirp'));
 
-/* Durruti
- * Utils.
- */
-
 function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }

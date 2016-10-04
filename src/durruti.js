@@ -128,25 +128,7 @@ function addComponentId (template, component) {
   return template.substr(0, firstBracketIndex) + attr + template.substr(firstBracketIndex)
 }
 
-function missingStateError () {
-  util.warn('state.js is not included. Store data will not be shared between client and server.')
-}
-
-// prevent errors when state.js is not included on the client
-class StateMock {
-  get () {
-    missingStateError()
-  }
-  set () {
-    missingStateError()
-  }
-}
-
 class Durruti {
-  constructor () {
-    this._state = new StateMock()
-  }
-
   renderStatic (template) {
     clearComponentCache()
 
@@ -165,7 +147,7 @@ class Durruti {
     var componentHtml = addComponentId(template, durrutiComponent)
 
     // mount and unmount in browser, when we specify a container.
-    if (typeof window !== 'undefined' && $container) {
+    if (util.isClient && $container) {
       // check if the container is still in the DOM.
       // when running multiple parallel render's, the container
       // is removed by the previous render, but the reference still in memory.

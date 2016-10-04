@@ -1,23 +1,15 @@
-/* shared state test
+/* client store
  */
 
-describe('State', function () {
+describe('Store', function () {
   'use strict'
 
-  it('should share store state between server and client', function () {
-    var data = {
-      test: '123'
-    }
+  it('should keep store history', function () {
+    var s = new durruti.Store()
 
-    var simulatedSharedState = ';(function(){window["DURRUTI"] = JSON.parse(\'' + JSON.stringify(data) + '\')}());'
+    s.set('1')
+    s.set('2')
 
-    var $script = document.createElement('script')
-    $script.textContent = simulatedSharedState
-
-    document.body.appendChild($script)
-
-    var s = new durruti.Store('test')
-
-    expect(s.get()).to.equal('123')
+    expect(s.list()).to.deep.equal([ '1', '2' ])
   })
 })

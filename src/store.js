@@ -2,23 +2,19 @@
  * Data store with change events.
  */
 
-import State from 'durruti/state'
 import * as util from './util'
-
-var defaultState = new State()
 
 function Store (name, options) {
   options = options || {}
 
   var historySupport = false
   // history is active only in the browser, by default
-  if (typeof window !== 'undefined') {
+  if (util.isClient) {
     historySupport = true
   }
 
   this.options = util.extend(options, {
-    history: historySupport,
-    state: defaultState
+    history: historySupport
   })
 
   this.events = {
@@ -26,22 +22,6 @@ function Store (name, options) {
   }
 
   this.data = []
-
-  // if a store name is defined, share state
-  if (name) {
-    // check if any data in sharedState
-    var stateValue = this.options.state.get(name)
-    if (stateValue) {
-      this.data.push(stateValue)
-    }
-
-    var self = this
-
-    // save data to shared state
-    this.on('change', function () {
-      self.options.state.set(name, self.get())
-    })
-  }
 }
 
 Store.prototype.trigger = function (topic) {

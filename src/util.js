@@ -2,6 +2,12 @@
  * Utils.
  */
 
+function hasWindow () {
+  return (typeof window !== 'undefined')
+}
+
+export var isClient = hasWindow()
+
 export function clone (obj) {
   return JSON.parse(JSON.stringify(obj))
 }

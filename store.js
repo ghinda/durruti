@@ -1,14 +1,18 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('durruti/state')) :
-  typeof define === 'function' && define.amd ? define(['durruti/state'], factory) :
-  (global.durruti = global.durruti || {}, global.durruti.Store = factory(global.durruti._state));
-}(this, (function (State) { 'use strict';
-
-  State = 'default' in State ? State['default'] : State;
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global.durruti = global.durruti || {}, global.durruti.Store = factory());
+}(this, (function () { 'use strict';
 
   /* Durruti
    * Utils.
    */
+
+  function hasWindow() {
+    return typeof window !== 'undefined';
+  }
+
+  var isClient = hasWindow();
 
   function clone(obj) {
     return JSON.parse(JSON.stringify(obj));
@@ -38,20 +42,17 @@
    * Data store with change events.
    */
 
-  var defaultState = new State();
-
   function Store(name, options) {
     options = options || {};
 
     var historySupport = false;
     // history is active only in the browser, by default
-    if (typeof window !== 'undefined') {
+    if (isClient) {
       historySupport = true;
     }
 
     this.options = extend(options, {
-      history: historySupport,
-      state: defaultState
+      history: historySupport
     });
 
     this.events = {
@@ -59,22 +60,6 @@
     };
 
     this.data = [];
-
-    // if a store name is defined, share state
-    if (name) {
-      // check if any data in sharedState
-      var stateValue = this.options.state.get(name);
-      if (stateValue) {
-        this.data.push(stateValue);
-      }
-
-      var self = this;
-
-      // save data to shared state
-      this.on('change', function () {
-        self.options.state.set(name, self.get());
-      });
-    }
   }
 
   Store.prototype.trigger = function (topic) {

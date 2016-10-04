@@ -2,6 +2,8 @@
  * Capture and remove event listeners.
  */
 
+import * as util from './util'
+
 var removeListeners = () => {}
 
 // capture all listeners
@@ -32,7 +34,7 @@ function captureAddEventListener (type, fn, capture) {
   })
 }
 
-if (typeof window !== 'undefined') {
+if (util.isClient) {
   var domEventTypes = getDomEventTypes()
 
   // capture addEventListener

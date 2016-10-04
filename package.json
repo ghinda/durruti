@@ -1,6 +1,6 @@
 {
   "name": "durruti",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "author": "Ionut Colceriu <contact@ghinda.net>",
   "description": "Micro isomorphic JavaScript library for building user interfaces.",
   "license": "MIT",
@@ -15,7 +15,6 @@
   },
   "files": [
     "durruti*",
-    "state*",
     "store*",
     "static*"
   ],

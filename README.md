@@ -14,13 +14,15 @@ Micro isomorphic JavaScript library for building user interfaces.
 
 Durruti aims to make isomorphic component-based JavaScript web apps easier to develop. It's focused on simplicity rather than performance.
 
+It uses an incremental DOM approach for patching. Components can use any sort of string-based templates.
+
 It doesn't do view model binding or event listeners on it's own. It takes a DIY approach and gives you have full control on when to re-render components, or how to handle events.
 
 ## Features
 
 * **Lightweight:** No dependencies, the client-side libraries are just `~4KB`.
 * **Simple Components:** Components are basic JavaScript classes/functions with three methods.
-* **Store:** Optional store library with change events and shared state between server and browser.
+* **Store:** Optional store library with change events. Makes it easy to share state between client and server.
 * **Static Site Generator:** Generate a static website from an isomorphic app.
 
 ## How to use
@@ -129,18 +131,15 @@ app.get('/:route', function (req, res) {
 
 ### Store
 
-The store library can be used to store data, with change history, shared state between client and server and change events.
+The store library can be used to store data, with change events and history.
 
 To use it, include the `store.js` file.
 
-Initialize a new store with `new durruti.Store(storeName, options)`. Both parameters are optional.
+Initialize a new store with `new durruti.Store(options)`. The options parameter is optional hash.
 
-* `storeName`: The first parameter is required only when sharing state between client and server, and must be a unique key.
-* `options`: The second parameter is an options hash.
+Available options are:
 
-The available options are:
-
-* `history`: By default, history is enabled in browsers, and disabled on the server. You can manually disable or enable it.
+* `history`: By default enabled in browsers, and disabled on the server. You can manually disable or enable it.
 
 
 #### Methods
@@ -161,38 +160,6 @@ model.on('change', function () {
 })
 
 model.set('New Model Value')
-```
-
-### State
-
-The state library is used for sharing Store data between client and server.
-
-In the browser, just include `state.js` and set a unique name for each Store. (eg. `new Store('store123')`).
-
-On the server, render the output of the `render` method in the HTML output.
-
-You can get the State instance from any one of your stores.
-
-```javascript
-var express = require('express')
-var app = express()
-var listStore = new Store('store123')
-
-app.get('/:route', function (req, res) {
-  res.send(durruti.renderStatic('<html><body><div id="app">' + durruti.render(Main) + '</div>' + listStore.options.state.render() + '</body></html>'))
-})
-```
-
-#### Custom state
-
-Stores can use a custom state instance, so they don't use the same global instance.
-
-```javascript
-var State = require('durruti/state')
-var customState = new State()
-var storeWithCustomState = new Store('uid', {
-  state: customState
-})
 ```
 
 ## License
