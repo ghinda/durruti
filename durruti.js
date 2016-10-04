@@ -147,12 +147,13 @@
         $node.setAttribute(prop, attrs[prop]);
       }
     }
-
-    // update the cached component
-    $node._durruti = $newNode._durruti;
   }
 
   function patchElement($node, $newNode, fragment) {
+    // always update the component instance,
+    // even if the dom doesn't change.
+    $node._durruti = $newNode._durruti;
+
     // faster than outerhtml
     if ($node.isEqualNode($newNode)) {
       // remove listeners on node and children
