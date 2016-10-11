@@ -20,7 +20,7 @@
 
   // one-level object extend
   function extend() {
-    var obj = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    var obj = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var defaults = arguments[1];
 
     // clone object
@@ -37,6 +37,8 @@
 
     return extended;
   }
+
+  var DURRUTI_DEBUG = true;
 
   /* Durruti
    * Data store with change events.
@@ -120,4 +122,5 @@
   return Store;
 
 })));
+
 //# sourceMappingURL=store.js.map

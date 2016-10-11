@@ -87,13 +87,6 @@ module.exports = function (grunt) {
         },
         src: [ 'src/store.js' ],
         dest: 'store.js'
-      },
-      static: {
-        options: {
-          format: 'cjs'
-        },
-        src: [ 'src/static.js' ],
-        dest: 'static.js'
       }
     },
     uglify: {
@@ -169,8 +162,7 @@ module.exports = function (grunt) {
       site: {
         src: [
           './durruti.*',
-          './store.*',
-          './static.*'
+          './store.*'
         ]
       }
     }

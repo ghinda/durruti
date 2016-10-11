@@ -22,8 +22,8 @@ It doesn't do view model binding or event listeners on it's own. It takes a DIY 
 
 * **Lightweight:** No dependencies, the client-side libraries are just `~4KB`.
 * **Simple Components:** Components are basic JavaScript classes/functions with three methods.
-* **Store:** Optional store library with change events. Makes it easy to share state between client and server.
-* **Static Site Generator:** Generate a static website from an isomorphic app.
+* **String Templates:** Use strings or any string-based templates for components.
+* **Store:** Optional store library with change events and history. Makes it easy to share state between client and server.
 
 ## How to use
 
@@ -116,9 +116,9 @@ durruti.render(Main, document.querySelector('#app'))
 
 #### Server render
 
-When rendering on the server, you must use the `renderStatic` method when rendering pages.
+When rendering on the server, you must use the `renderStatic` method on each page render.
 
-The example bellow uses Express, but can be adapted to any Node.js framework.
+This example uses Express, but can be adapted to any Node.js framework.
 
 ```javascript
 var express = require('express')

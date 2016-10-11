@@ -15,16 +15,12 @@
   },
   "files": [
     "durruti*",
-    "store*",
-    "static*"
+    "store*"
   ],
   "scripts": {
-    "test": "ln -sfn ../ node_modules/durruti; grunt test",
+    "test": "grunt test",
     "dev": "grunt server",
     "build": "grunt"
-  },
-  "dependencies": {
-    "mkdirp": "^0.5.1"
   },
   "devDependencies": {
     "connect-livereload": "^0.6.0",
