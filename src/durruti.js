@@ -128,6 +128,21 @@ function addComponentId (template, component) {
   return template.substr(0, firstBracketIndex) + attr + template.substr(firstBracketIndex)
 }
 
+// traverse and find durruti nodes
+function getComponentNodes ($container, arr = []) {
+  if ($container._durruti) {
+    arr.push($container)
+  }
+
+  if ($container.children) {
+    for (let i = 0; i < $container.children.length; i++) {
+      getComponentNodes($container.children[i], arr)
+    }
+  }
+
+  return arr
+}
+
 class Durruti {
   renderStatic (template) {
     clearComponentCache()
@@ -161,18 +176,38 @@ class Durruti {
       // convert the template string to a dom node
       var $newComponent = createFragment(componentHtml)
 
+      // unmount component and sub-components
+      getComponentNodes($container).forEach(unmountNode)
+
       // if the container is a durruti element,
       // unmount it and it's children and replace the node.
       if (getCachedComponent($container)) {
-        // unmount components that are about to be removed from the dom.
-        dom.getComponentNodes($container, true).forEach(unmountNode)
-
         // remove the data attributes on the new node,
-        // before patch.
+        // before patch,
+        // and get the list of new components.
         cleanAttrNodes($newComponent, true)
 
+        // get required dom patches
+        var patches = dom.diff($container, $newComponent)
+
+        patches.forEach(function (patch) {
+          // always update component instances,
+          // even if the dom doesn't change.
+          patch.node._durruti = patch.newNode._durruti
+
+          // patches contain all the traversed nodes.
+          // get the mount components here, for performance.
+          if (patch.node._durruti) {
+            if (patch.replace) {
+              componentNodes.push(patch.newNode)
+            } else {
+              componentNodes.push(patch.node)
+            }
+          }
+        })
+
         // morph old dom node into new one
-        componentNodes = dom.patch($container, $newComponent)
+        dom.patch(patches)
       } else {
         // if the component is not a durruti element,
         // insert the template with innerHTML.

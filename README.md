@@ -14,7 +14,7 @@ Micro isomorphic JavaScript library for building user interfaces.
 
 Durruti aims to make isomorphic component-based JavaScript web apps easier to develop. It's focused on simplicity rather than performance.
 
-It uses an incremental DOM approach for patching. Components can use any sort of string-based templates.
+It uses DOM diffing and patching. Components can use any sort of string-based templates.
 
 It doesn't do view model binding or event listeners on it's own. It takes a DIY approach and gives you have full control on when to re-render components, or how to handle events.
 

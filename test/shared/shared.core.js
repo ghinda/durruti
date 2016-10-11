@@ -4,6 +4,10 @@
 describe('Core', function () {
   'use strict'
 
+  before(function () {
+    durruti.renderStatic()
+  })
+
   it('should render a component', function () {
     function TestComponent () {
       this.render = function () {
