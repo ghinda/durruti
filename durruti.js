@@ -14,6 +14,13 @@
 
   var isClient = hasWindow();
 
+  function clone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  // one-level object extend
+
+
   var DURRUTI_DEBUG = true;
 
   function warn() {
@@ -97,7 +104,7 @@
     };
   }
 
-  var removeListeners = _removeListeners;
+  var removeListeners$1 = _removeListeners;
 
   /* Durruti
    * DOM patch - morphs a DOM node into another.
@@ -139,7 +146,7 @@
   }
 
   function diff($node, $newNode) {
-    var patches = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];
+    var patches = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
 
     var patch = {
       node: $node,
@@ -152,7 +159,7 @@
     // faster than outerhtml
     if ($node.isEqualNode($newNode)) {
       // remove listeners on node and children
-      removeListeners($node, true);
+      removeListeners$1($node, true);
 
       return patches;
     }
@@ -166,7 +173,7 @@
       patch.update = true;
 
       // remove listeners on node
-      removeListeners($node);
+      removeListeners$1($node);
 
       // traverse childNodes
       traverse($node, $newNode, patches);
@@ -195,6 +202,10 @@
     return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;
   };
 
+
+
+
+
   var classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -218,6 +229,75 @@
       return Constructor;
     };
   }();
+
+
+
+
+
+
+
+  var get = function get(object, property, receiver) {
+    if (object === null) object = Function.prototype;
+    var desc = Object.getOwnPropertyDescriptor(object, property);
+
+    if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);
+
+      if (parent === null) {
+        return undefined;
+      } else {
+        return get(parent, property, receiver);
+      }
+    } else if ("value" in desc) {
+      return desc.value;
+    } else {
+      var getter = desc.get;
+
+      if (getter === undefined) {
+        return undefined;
+      }
+
+      return getter.call(receiver);
+    }
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  var set = function set(object, property, value, receiver) {
+    var desc = Object.getOwnPropertyDescriptor(object, property);
+
+    if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);
+
+      if (parent !== null) {
+        set(parent, property, value, receiver);
+      }
+    } else if ("value" in desc && desc.writable) {
+      desc.value = value;
+    } else {
+      var setter = desc.set;
+
+      if (setter !== undefined) {
+        setter.call(receiver, value);
+      }
+    }
+
+    return value;
+  };
 
   /* Durruti
    * Micro Isomorphic JavaScript library for building user interfaces.
@@ -306,7 +386,7 @@
   }
 
   function createFragment() {
-    var template = arguments.length <= 0 || arguments[0] === undefined ? '' : arguments[0];
+    var template = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
 
     template = template.trim();
     var parent = 'div';
@@ -350,7 +430,7 @@
 
   // traverse and find durruti nodes
   function getComponentNodes($container) {
-    var arr = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+    var arr = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
 
     if ($container._durruti) {
       arr.push($container);
@@ -427,18 +507,18 @@
               patches = diff($container, $newComponent);
 
 
-              patches.forEach(function (patch) {
+              patches.forEach(function (patch$$1) {
                 // always update component instances,
                 // even if the dom doesn't change.
-                patch.node._durruti = patch.newNode._durruti;
+                patch$$1.node._durruti = patch$$1.newNode._durruti;
 
                 // patches contain all the traversed nodes.
                 // get the mount components here, for performance.
-                if (patch.node._durruti) {
-                  if (patch.replace) {
-                    componentNodes.push(patch.newNode);
+                if (patch$$1.node._durruti) {
+                  if (patch$$1.replace) {
+                    componentNodes.push(patch$$1.newNode);
                   } else {
-                    componentNodes.push(patch.node);
+                    componentNodes.push(patch$$1.node);
                   }
                 }
               });
@@ -475,4 +555,5 @@
   return durruti;
 
 })));
+
 //# sourceMappingURL=durruti.js.map
