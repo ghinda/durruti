@@ -451,11 +451,11 @@
     }
 
     createClass(Durruti, [{
-      key: 'renderStatic',
-      value: function renderStatic(template) {
+      key: 'server',
+      value: function server() {
         clearComponentCache();
 
-        return template;
+        return this;
       }
     }, {
       key: 'render',
@@ -517,8 +517,12 @@
                 if (patch$$1.node._durruti) {
                   if (patch$$1.replace) {
                     componentNodes.push(patch$$1.newNode);
-                  } else {
+                  } else if (patch$$1.update) {
                     componentNodes.push(patch$$1.node);
+                  } else {
+                    // node is the same,
+                    // but we need to mount sub-components.
+                    Array.prototype.push.apply(componentNodes, getComponentNodes($container));
                   }
                 }
               });
