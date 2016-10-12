@@ -116,7 +116,7 @@ durruti.render(Main, document.querySelector('#app'))
 
 #### Server render
 
-When rendering on the server, you must use the `renderStatic` method on each page render.
+When rendering on the server, you must use the `server()` method on each page render.
 
 This example uses Express, but can be adapted to any Node.js framework.
 
@@ -124,7 +124,7 @@ This example uses Express, but can be adapted to any Node.js framework.
 var express = require('express')
 var app = express()
 app.get('/:route', function (req, res) {
-  res.send(durruti.renderStatic('<html><body><div id="app">' + durruti.render(Main) + '</div></body></html>'))
+  res.send(durruti.server().render('<html><body><div id="app">' + durruti.render(Main) + '</div></body></html>'))
 })
 ```
 

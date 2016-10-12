@@ -9,7 +9,7 @@ describe('Mouting and Unmounting', function () {
   var $app
   beforeEach(function () {
     if ($app) {
-      $fixtures.removeChild($app)
+//       $fixtures.removeChild($app)
     }
 
     $app = document.createElement('div')
@@ -77,6 +77,40 @@ describe('Mouting and Unmounting', function () {
     durruti.render(One, $app)
 
     expect(mounted).to.equal(true)
+  })
+
+  it('should unmount and mount one more time', function () {
+    var mount = -1
+    var unmount = 0
+
+    function Two () {
+      this.unmount = function () {
+        unmount++
+      }
+
+      this.mount = function () {
+        mount++
+      }
+
+      this.render = function () {
+        return '<div></div>'
+      }
+    }
+
+    function One () {
+      this.render = function () {
+        return '<div>' + durruti.render(Two) + '</div>'
+      }
+    }
+
+    durruti.render(One, $app)
+
+    var $container = $app.querySelector('div')
+
+    durruti.render(One, $container)
+    durruti.render(One, $container)
+
+    expect(mount).to.equal(unmount)
   })
 
   it('should unmount sub-component', function () {

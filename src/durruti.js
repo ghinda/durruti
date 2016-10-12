@@ -144,10 +144,10 @@ function getComponentNodes ($container, arr = []) {
 }
 
 class Durruti {
-  renderStatic (template) {
+  server () {
     clearComponentCache()
 
-    return template
+    return this
   }
 
   render (component, $container) {
@@ -200,8 +200,12 @@ class Durruti {
           if (patch.node._durruti) {
             if (patch.replace) {
               componentNodes.push(patch.newNode)
-            } else {
+            } else if (patch.update) {
               componentNodes.push(patch.node)
+            } else {
+              // node is the same,
+              // but we need to mount sub-components.
+              Array.prototype.push.apply(componentNodes, getComponentNodes($container))
             }
           }
         })

@@ -4,10 +4,6 @@
 describe('Core', function () {
   'use strict'
 
-  before(function () {
-    durruti.renderStatic()
-  })
-
   it('should render a component', function () {
     function TestComponent () {
       this.render = function () {
@@ -15,7 +11,7 @@ describe('Core', function () {
       }
     }
 
-    expect(durruti.render(TestComponent)).to.equal('<div data-durruti-id="0">Component</div>')
+    expect(durruti.server().render(TestComponent)).to.equal('<div data-durruti-id="0">Component</div>')
   })
 
   it('should render nested components', function () {
