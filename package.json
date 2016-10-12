@@ -1,6 +1,6 @@
 {
   "name": "durruti",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "author": "Ionut Colceriu <contact@ghinda.net>",
   "description": "Micro isomorphic JavaScript library for building user interfaces.",
   "license": "MIT",
@@ -20,7 +20,8 @@
   "scripts": {
     "test": "grunt test",
     "dev": "grunt server",
-    "build": "grunt"
+    "build": "grunt",
+    "prepublish": "npm run build"
   },
   "devDependencies": {
     "connect-livereload": "^0.6.0",
