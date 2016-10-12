@@ -9,7 +9,7 @@ describe('Mouting and Unmounting', function () {
   var $app
   beforeEach(function () {
     if ($app) {
-//       $fixtures.removeChild($app)
+      $fixtures.removeChild($app)
     }
 
     $app = document.createElement('div')
@@ -80,7 +80,7 @@ describe('Mouting and Unmounting', function () {
   })
 
   it('should unmount and mount one more time', function () {
-    var mount = -1
+    var mount = 0
     var unmount = 0
 
     function Two () {
@@ -110,7 +110,42 @@ describe('Mouting and Unmounting', function () {
     durruti.render(One, $container)
     durruti.render(One, $container)
 
-    expect(mount).to.equal(unmount)
+    expect(mount - 1).to.equal(unmount)
+  })
+
+  it('should unmount and mount one more time for each component', function () {
+    var mount = 0
+    var unmount = 0
+
+    function Two () {
+      this.unmount = function () {
+        unmount++
+      }
+
+      this.mount = function () {
+        mount++
+      }
+
+      this.render = function () {
+        return '<div></div>'
+      }
+    }
+
+    function One () {
+      this.render = function () {
+        return '<div>' + Date.now() + durruti.render(Two) + durruti.render(Two) + durruti.render(Two) + durruti.render(Two) + '</div>'
+      }
+    }
+
+    durruti.render(One, $app)
+
+    var $container = $app.querySelector('div')
+
+    durruti.render(One, $container)
+    durruti.render(One, $container)
+
+    // one extra mount for each component
+    expect(mount - 4).to.equal(unmount)
   })
 
   it('should unmount sub-component', function () {

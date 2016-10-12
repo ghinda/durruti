@@ -522,7 +522,7 @@
                   } else {
                     // node is the same,
                     // but we need to mount sub-components.
-                    Array.prototype.push.apply(componentNodes, getComponentNodes($container));
+                    Array.prototype.push.apply(componentNodes, getComponentNodes(patch$$1.node));
                   }
                 }
               });
