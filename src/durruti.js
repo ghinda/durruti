@@ -7,7 +7,7 @@ import * as dom from './dom'
 
 const durrutiAttr = 'data-durruti-id'
 const durrutiElemSelector = `[${durrutiAttr}]`
-var componentCache = {}
+var componentCache = []
 var componentIndex = 0
 
 // decorate a basic class with durruti specific properties
@@ -27,15 +27,27 @@ function decorate (Comp) {
   component._durrutiId = String(componentIndex++)
 
   // cache component
-  componentCache[component._durrutiId] = component
+  componentCache.push({
+    id: component._durrutiId,
+    component: component
+  })
 
   return component
 }
 
 function getCachedComponent ($node) {
   // get the component from the dom node - rendered in browser.
+  if ($node._durruti) {
+    return $node._durruti
+  }
+
   // or get it from the component cache - rendered on the server.
-  return $node._durruti || componentCache[$node.getAttribute(durrutiAttr)]
+  var id = $node.getAttribute(durrutiAttr)
+  for (var i = 0; i < componentCache.length; i++) {
+    if (componentCache[i].id === id) {
+      return componentCache[i].component
+    }
+  }
 }
 
 // remove custom data attributes,
@@ -79,11 +91,16 @@ function mountNode ($node) {
 
 function clearComponentCache (component) {
   if (component) {
-    componentCache[component._durrutiId] = null
+    for (var i = 0; i < componentCache.length; i++) {
+      if (componentCache[i].id === component._durrutiId) {
+        componentCache.splice(i, 1)
+        return
+      }
+    }
   } else {
     // clear the entire component cache
     componentIndex = 0
-    componentCache = {}
+    componentCache.length = 0
   }
 }
 
