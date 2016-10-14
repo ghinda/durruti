@@ -20,8 +20,7 @@
   "scripts": {
     "test": "grunt test",
     "dev": "grunt server",
-    "build": "grunt",
-    "prepublish": "npm run build"
+    "build": "grunt"
   },
   "devDependencies": {
     "connect-livereload": "^0.6.0",
