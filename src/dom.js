@@ -59,7 +59,6 @@ export function diff ($node, $newNode, patches = []) {
   // if one of them is not an element node,
   // or the tag changed,
   // or not the same number of children.
-  // TODO compare text nodes.
   if ($node.nodeType !== 1 ||
     $newNode.nodeType !== 1 ||
     $node.tagName !== $newNode.tagName ||
