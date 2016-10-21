@@ -36,7 +36,8 @@
   var _removeListeners = function removeListeners() {};
 
   // capture all listeners
-  var events = {};
+  var events = [];
+  var domEventTypes = [];
 
   function getDomEventTypes() {
     var eventTypes = [];
@@ -55,16 +56,38 @@
   function captureAddEventListener(type, fn, capture) {
     originalAddEventListener.apply(this, arguments);
 
-    events[this] = events[this] || [];
-    events[this].push({
+    events.push({
+      target: this,
       type: type,
       fn: fn,
       capture: capture
     });
   }
 
+  function removeNodeEvents($node) {
+    var i = 0;
+
+    while (i < events.length) {
+      if (events[i].target === $node) {
+        // remove listener
+        $node.removeEventListener(events[i].type, events[i].fn, events[i].capture);
+
+        // remove event
+        events.splice(i, 1);
+        i--;
+      }
+
+      i++;
+    }
+
+    // remove on* listeners
+    domEventTypes.forEach(function (eventType) {
+      $node[eventType] = null;
+    });
+  }
+
   if (isClient) {
-    var domEventTypes = getDomEventTypes();
+    domEventTypes = getDomEventTypes();
 
     // capture addEventListener
 
@@ -80,20 +103,7 @@
 
     // traverse and remove all events listeners from nodes
     _removeListeners = function removeListeners($node, traverse) {
-      var nodeEvents = events[$node];
-      if (nodeEvents) {
-        // remove listeners
-        nodeEvents.forEach(function (event) {
-          $node.removeEventListener(event.type, event.fn, event.capture);
-        });
-
-        // remove on* listeners
-        domEventTypes.forEach(function (eventType) {
-          $node[eventType] = null;
-        });
-
-        events[$node] = null;
-      }
+      removeNodeEvents($node);
 
       // traverse element children
       if (traverse && $node.children) {
@@ -153,7 +163,7 @@
       newNode: $newNode
     };
 
-    // replace or update attributes
+    // push traversed node to patch list
     patches.push(patch);
 
     // faster than outerhtml
@@ -167,6 +177,7 @@
     // if one of them is not an element node,
     // or the tag changed,
     // or not the same number of children.
+    // TODO compare text nodes.
     if ($node.nodeType !== 1 || $newNode.nodeType !== 1 || $node.tagName !== $newNode.tagName || $node.childNodes.length !== $newNode.childNodes.length) {
       patch.replace = true;
     } else {

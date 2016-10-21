@@ -109,4 +109,47 @@ describe('DOM', function () {
 
     expect(count).to.equal(3)
   })
+
+  it('should remove event listeners on sub-components', function () {
+    var count = 0
+
+    var clickEvent = document.createEvent('Event')
+    clickEvent.initEvent('click', true, true)
+
+    function Two () {
+      this.mount = function ($node) {
+        $node.addEventListener('click', function () {
+          count++
+
+          durruti.render(One, $one)
+        })
+      }
+
+      this.render = function () {
+        return '<div class="two">two</div>'
+      }
+    }
+
+    var $one
+
+    function One () {
+      this.mount = function ($node) {
+        $one = $node
+      }
+
+      this.render = function () {
+        return '<div data-count="' + count + '">' + durruti.render(Two) + '</div>'
+      }
+    }
+
+    durruti.render(One, $app)
+
+    var $container = $app.querySelector('.two')
+
+    $container.dispatchEvent(clickEvent)
+    $container.dispatchEvent(clickEvent)
+    $container.dispatchEvent(clickEvent)
+
+    expect(count).to.equal(3)
+  })
 })

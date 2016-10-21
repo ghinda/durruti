@@ -7,7 +7,8 @@ import * as util from './util'
 var removeListeners = () => {}
 
 // capture all listeners
-var events = {}
+var events = []
+var domEventTypes = []
 
 function getDomEventTypes () {
   var eventTypes = []
@@ -26,16 +27,38 @@ var originalAddEventListener
 function captureAddEventListener (type, fn, capture) {
   originalAddEventListener.apply(this, arguments)
 
-  events[this] = events[this] || []
-  events[this].push({
+  events.push({
+    target: this,
     type: type,
     fn: fn,
     capture: capture
   })
 }
 
+function removeNodeEvents ($node) {
+  var i = 0
+
+  while (i < events.length) {
+    if (events[i].target === $node) {
+      // remove listener
+      $node.removeEventListener(events[i].type, events[i].fn, events[i].capture)
+
+      // remove event
+      events.splice(i, 1)
+      i--
+    }
+
+    i++
+  }
+
+  // remove on* listeners
+  domEventTypes.forEach((eventType) => {
+    $node[eventType] = null
+  })
+}
+
 if (util.isClient) {
-  var domEventTypes = getDomEventTypes()
+  domEventTypes = getDomEventTypes()
 
   // capture addEventListener
 
@@ -50,21 +73,8 @@ if (util.isClient) {
   }
 
   // traverse and remove all events listeners from nodes
-  removeListeners = function ($node, traverse) {
-    var nodeEvents = events[$node]
-    if (nodeEvents) {
-      // remove listeners
-      nodeEvents.forEach((event) => {
-        $node.removeEventListener(event.type, event.fn, event.capture)
-      })
-
-      // remove on* listeners
-      domEventTypes.forEach((eventType) => {
-        $node[eventType] = null
-      })
-
-      events[$node] = null
-    }
+  removeListeners = ($node, traverse) => {
+    removeNodeEvents($node)
 
     // traverse element children
     if (traverse && $node.children) {
