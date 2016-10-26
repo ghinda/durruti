@@ -31,7 +31,7 @@ function patchAttrs ($node, $newNode) {
 
   // add-change attributes
   for (let prop in attrs) {
-    if (!attrs[prop]) {
+    if (attrs[prop] === null) {
       $node.removeAttribute(prop)
 
       // checked needs extra work
