@@ -149,6 +149,11 @@
     for (var prop in attrs) {
       if (!attrs[prop]) {
         $node.removeAttribute(prop);
+
+        // checked needs extra work
+        if (prop === 'checked') {
+          $node.checked = false;
+        }
       } else {
         $node.setAttribute(prop, attrs[prop]);
       }

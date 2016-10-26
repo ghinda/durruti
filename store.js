@@ -28,9 +28,7 @@
 
     // copy default keys where undefined
     Object.keys(defaults).forEach(function (key) {
-      if (typeof extended[key] !== 'undefined') {
-        extended[key] = obj[key];
-      } else {
+      if (typeof extended[key] === 'undefined') {
         extended[key] = defaults[key];
       }
     });
