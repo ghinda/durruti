@@ -4,6 +4,21 @@
 
 import removeListeners from './listeners.js'
 
+var propMap = {
+  tabindex: 'tabIndex',
+  readonly: 'readOnly',
+  for: 'htmlFor',
+  class: 'className',
+  maxlength: 'maxLength',
+  cellspacing: 'cellSpacing',
+  cellpadding: 'cellPadding',
+  rowspan: 'rowSpan',
+  colspan: 'colSpan',
+  usemap: 'useMap',
+  frameborder: 'frameBorder',
+  contenteditable: 'contentEditable'
+}
+
 function traverse ($node, $newNode, patches) {
   // traverse
   for (let i = 0; i < $node.childNodes.length; i++) {
@@ -40,7 +55,7 @@ function patchAttrs ($node, $newNode) {
     // for properties that need to change with attributes,
     // but don't when changed by user input.
     // eg. checked
-    $node[prop] = attrs[prop]
+    $node[propMap[prop] || prop] = attrs[prop]
   }
 }
 
