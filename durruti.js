@@ -188,9 +188,6 @@
 
     // faster than outerhtml
     if ($node.isEqualNode($newNode)) {
-      // remove listeners on node and children
-      removeListeners$1($node, true);
-
       return patches;
     }
 
@@ -201,9 +198,6 @@
       patch.replace = true;
     } else {
       patch.update = true;
-
-      // remove listeners on node
-      removeListeners$1($node);
 
       // traverse childNodes
       traverse($node, $newNode, patches);
@@ -217,6 +211,12 @@
       patch.node.parentNode.replaceChild(patch.newNode, patch.node);
     } else if (patch.update) {
       patchAttrs(patch.node, patch.newNode);
+
+      // remove listeners on node
+      removeListeners$1(patch.node);
+    } else {
+      // remove listeners on node and children
+      removeListeners$1(patch.node, true);
     }
   }
 

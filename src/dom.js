@@ -70,9 +70,6 @@ export function diff ($node, $newNode, patches = []) {
 
   // faster than outerhtml
   if ($node.isEqualNode($newNode)) {
-    // remove listeners on node and children
-    removeListeners($node, true)
-
     return patches
   }
 
@@ -87,9 +84,6 @@ export function diff ($node, $newNode, patches = []) {
   } else {
     patch.update = true
 
-    // remove listeners on node
-    removeListeners($node)
-
     // traverse childNodes
     traverse($node, $newNode, patches)
   }
@@ -102,6 +96,12 @@ function applyPatch (patch) {
     patch.node.parentNode.replaceChild(patch.newNode, patch.node)
   } else if (patch.update) {
     patchAttrs(patch.node, patch.newNode)
+
+    // remove listeners on node
+    removeListeners(patch.node)
+  } else {
+    // remove listeners on node and children
+    removeListeners(patch.node, true)
   }
 }
 
