@@ -149,14 +149,14 @@
     for (var prop in attrs) {
       if (attrs[prop] === null) {
         $node.removeAttribute(prop);
-
-        // checked needs extra work
-        if (prop === 'checked') {
-          $node.checked = false;
-        }
       } else {
         $node.setAttribute(prop, attrs[prop]);
       }
+
+      // for properties that need to change with attributes,
+      // but don't when changed by user input.
+      // eg. checked
+      $node[prop] = attrs[prop];
     }
   }
 

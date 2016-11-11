@@ -152,4 +152,35 @@ describe('DOM', function () {
 
     expect(count).to.equal(3)
   })
+
+  it('should uncheck checked checkbox', function (done) {
+    var mounted = false
+
+    var checked = 'checked'
+
+    function One () {
+      this.mount = function ($node) {
+        if (mounted) {
+          return
+        }
+
+        mounted = true
+
+        // simulate user click.
+        $node.querySelector('input').checked = true
+
+        checked = ''
+        durruti.render(One, $node)
+
+        expect($app.querySelector('input').checked).to.equal(false)
+        done()
+      }
+
+      this.render = function () {
+        return '<div><input type="checkbox" ' + checked + '></div>'
+      }
+    }
+
+    durruti.render(One, $app)
+  })
 })
