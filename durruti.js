@@ -159,13 +159,16 @@
 
   function mapAttributes($node, $newNode) {
     var attrs = {};
+    var oldAttributes = $node.attributes;
+    var newAttributes = $newNode.attributes;
 
-    for (var i = 0; i < $node.attributes.length; i++) {
-      attrs[$node.attributes[i].name] = null;
+    for (var i = 0; i < oldAttributes.length; i++) {
+      // IE9 returns `checked` as `CHECKED`
+      attrs[oldAttributes[i].name.toLowerCase()] = null;
     }
 
-    for (var _i = 0; _i < $newNode.attributes.length; _i++) {
-      attrs[$newNode.attributes[_i].name] = $newNode.attributes[_i].value;
+    for (var _i = 0; _i < newAttributes.length; _i++) {
+      attrs[newAttributes[_i].name.toLowerCase()] = newAttributes[_i].value;
     }
 
     return attrs;

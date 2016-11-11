@@ -28,13 +28,16 @@ function traverse ($node, $newNode, patches) {
 
 function mapAttributes ($node, $newNode) {
   var attrs = {}
+  var oldAttributes = $node.attributes
+  var newAttributes = $newNode.attributes
 
-  for (let i = 0; i < $node.attributes.length; i++) {
-    attrs[$node.attributes[i].name] = null
+  for (let i = 0; i < oldAttributes.length; i++) {
+    // IE9 returns `checked` as `CHECKED`
+    attrs[oldAttributes[i].name.toLowerCase()] = null
   }
 
-  for (let i = 0; i < $newNode.attributes.length; i++) {
-    attrs[$newNode.attributes[i].name] = $newNode.attributes[i].value
+  for (let i = 0; i < newAttributes.length; i++) {
+    attrs[newAttributes[i].name.toLowerCase()] = newAttributes[i].value
   }
 
   return attrs
