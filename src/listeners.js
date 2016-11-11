@@ -35,11 +35,20 @@ function captureAddEventListener (type, fn, capture) {
   })
 }
 
-function removeNodeEvents ($node) {
+function removeNodeOnEvents (nodes) {
+  nodes.forEach(($node) => {
+    domEventTypes.forEach((eventType) => {
+      $node[eventType] = null
+    })
+  })
+}
+
+function removeNodeEvents (nodes) {
   var i = 0
 
   while (i < events.length) {
-    if (events[i].target === $node) {
+    if (nodes.indexOf(events[i].target) !== -1) {
+      var $node = events[i].target
       // remove listener
       $node.removeEventListener(events[i].type, events[i].fn, events[i].capture)
 
@@ -52,9 +61,20 @@ function removeNodeEvents ($node) {
   }
 
   // remove on* listeners
-  domEventTypes.forEach((eventType) => {
-    $node[eventType] = null
-  })
+  removeNodeOnEvents(nodes)
+}
+
+function getNodeList ($node, traverse, nodes = []) {
+  nodes.push($node)
+
+  // traverse element children
+  if (traverse && $node.children) {
+    for (let i = 0; i < $node.children.length; i++) {
+      getNodeList($node.children[i], true, nodes)
+    }
+  }
+
+  return nodes
 }
 
 if (util.isClient) {
@@ -74,14 +94,7 @@ if (util.isClient) {
 
   // traverse and remove all events listeners from nodes
   removeListeners = ($node, traverse) => {
-    removeNodeEvents($node)
-
-    // traverse element children
-    if (traverse && $node.children) {
-      for (let i = 0; i < $node.children.length; i++) {
-        removeListeners($node.children[i], true)
-      }
-    }
+    removeNodeEvents(getNodeList($node, traverse))
   }
 }
 

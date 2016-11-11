@@ -33,7 +33,7 @@
    * Capture and remove event listeners.
    */
 
-  var _removeListeners = function removeListeners() {};
+  var removeListeners = function removeListeners() {};
 
   // capture all listeners
   var events = [];
@@ -64,11 +64,20 @@
     });
   }
 
-  function removeNodeEvents($node) {
+  function removeNodeOnEvents(nodes) {
+    nodes.forEach(function ($node) {
+      domEventTypes.forEach(function (eventType) {
+        $node[eventType] = null;
+      });
+    });
+  }
+
+  function removeNodeEvents(nodes) {
     var i = 0;
 
     while (i < events.length) {
-      if (events[i].target === $node) {
+      if (nodes.indexOf(events[i].target) !== -1) {
+        var $node = events[i].target;
         // remove listener
         $node.removeEventListener(events[i].type, events[i].fn, events[i].capture);
 
@@ -81,9 +90,22 @@
     }
 
     // remove on* listeners
-    domEventTypes.forEach(function (eventType) {
-      $node[eventType] = null;
-    });
+    removeNodeOnEvents(nodes);
+  }
+
+  function getNodeList($node, traverse) {
+    var nodes = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+
+    nodes.push($node);
+
+    // traverse element children
+    if (traverse && $node.children) {
+      for (var i = 0; i < $node.children.length; i++) {
+        getNodeList($node.children[i], true, nodes);
+      }
+    }
+
+    return nodes;
   }
 
   if (isClient) {
@@ -102,19 +124,12 @@
     }
 
     // traverse and remove all events listeners from nodes
-    _removeListeners = function removeListeners($node, traverse) {
-      removeNodeEvents($node);
-
-      // traverse element children
-      if (traverse && $node.children) {
-        for (var i = 0; i < $node.children.length; i++) {
-          _removeListeners($node.children[i], true);
-        }
-      }
+    removeListeners = function removeListeners($node, traverse) {
+      removeNodeEvents(getNodeList($node, traverse));
     };
   }
 
-  var removeListeners$1 = _removeListeners;
+  var removeListeners$1 = removeListeners;
 
   /* Durruti
    * DOM patch - morphs a DOM node into another.
