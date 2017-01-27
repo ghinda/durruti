@@ -197,4 +197,72 @@ describe('Mouting and Unmounting', function () {
 
     expect(unmounted).to.equal(2)
   })
+
+  it('should mount new sub-components on durruti component node replace', function () {
+    var mountOne = 0
+    var mountTwo = 0
+
+    function Two () {
+      this.mount = function () {
+        mountTwo++
+      }
+
+      this.render = function () {
+        return '<div></div>'
+      }
+    }
+
+    function One () {
+      this.mount = function ($container) {
+        if (mountOne > 0) {
+          return
+        }
+
+        mountOne++
+        durruti.render(One, $container)
+      }
+
+      this.render = function () {
+        return '<div>' + (mountOne > 0 ? durruti.render(Two) : '') + '</div>'
+      }
+    }
+
+    durruti.render(One, $app)
+
+    expect(mountTwo).to.equal(1)
+  })
+
+  it('should mount sub-components in replaced non-durruti nodes', function () {
+    var mountOne = 0
+    var mountTwo = 0
+
+    function Two () {
+      this.mount = function () {
+        mountTwo++
+      }
+
+      this.render = function () {
+        return '<div></div>'
+      }
+    }
+
+    function One () {
+      this.mount = function ($container) {
+        if (mountOne > 0) {
+          return
+        }
+
+        mountOne++
+        durruti.render(One, $container)
+      }
+
+      this.render = function () {
+        return '<div>' + (mountOne > 0 ? '<div>' + durruti.render(Two) + '</div>' : '<div></div>') + '</div>'
+      }
+    }
+
+    durruti.render(One, $app)
+
+    expect(mountTwo).to.equal(1)
+  })
 })

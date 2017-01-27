@@ -496,12 +496,13 @@
   // traverse and find durruti nodes
   function getComponentNodes($container) {
     var arr = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+    var traverse = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
 
     if ($container._durruti) {
       arr.push($container);
     }
 
-    if ($container.children) {
+    if (traverse && $container.children) {
       for (var i = 0; i < $container.children.length; i++) {
         getComponentNodes($container.children[i], arr);
       }
@@ -579,17 +580,20 @@
 
                 // patches contain all the traversed nodes.
                 // get the mount components here, for performance.
-                if (patch$$1.node._durruti) {
-                  if (patch$$1.replace) {
-                    componentNodes.push(patch$$1.newNode);
-                  } else if (patch$$1.update) {
-                    componentNodes.push(patch$$1.node);
-                  } else {
-                    // node is the same,
-                    // but we need to mount sub-components.
-                    Array.prototype.push.apply(componentNodes, getComponentNodes(patch$$1.node));
-                  }
+                var foundComponentNodes = [];
+
+                if (patch$$1.update) {
+                  // on update only add the parent node.
+                  // traversal is done by the dom patcher.
+                  foundComponentNodes = getComponentNodes(patch$$1.node, [], false);
+                } else if (patch$$1.replace) {
+                  foundComponentNodes = getComponentNodes(patch$$1.newNode);
+                } else {
+                  foundComponentNodes = getComponentNodes(patch$$1.node);
                 }
+
+                // add found component nodes
+                Array.prototype.push.apply(componentNodes, foundComponentNodes);
               });
 
               // morph old dom node into new one
