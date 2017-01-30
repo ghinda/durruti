@@ -1,6 +1,6 @@
 {
   "name": "durruti",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "author": "Ionut Colceriu <contact@ghinda.net>",
   "description": "Micro isomorphic JavaScript library for building user interfaces.",
   "license": "MIT",
