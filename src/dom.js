@@ -73,6 +73,7 @@ export function diff ($node, $newNode, patches = []) {
 
   // faster than outerhtml
   if ($node.isEqualNode($newNode)) {
+    patch.equal = true
     return patches
   }
 
@@ -85,7 +86,10 @@ export function diff ($node, $newNode, patches = []) {
     $node.childNodes.length !== $newNode.childNodes.length) {
     patch.replace = true
   } else {
-    patch.update = true
+    // check if attributes changed
+    if (!$node.cloneNode().isEqualNode($newNode.cloneNode())) {
+      patch.update = true
+    }
 
     // traverse childNodes
     traverse($node, $newNode, patches)

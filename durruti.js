@@ -14,9 +14,7 @@
 
   var isClient = hasWindow();
 
-  function clone(obj) {
-    return JSON.parse(JSON.stringify(obj));
-  }
+
 
   // one-level object extend
 
@@ -206,6 +204,7 @@
 
     // faster than outerhtml
     if ($node.isEqualNode($newNode)) {
+      patch.equal = true;
       return patches;
     }
 
@@ -215,7 +214,10 @@
     if ($node.nodeType !== 1 || $newNode.nodeType !== 1 || $node.tagName !== $newNode.tagName || $node.childNodes.length !== $newNode.childNodes.length) {
       patch.replace = true;
     } else {
-      patch.update = true;
+      // check if attributes changed
+      if (!$node.cloneNode().isEqualNode($newNode.cloneNode())) {
+        patch.update = true;
+      }
 
       // traverse childNodes
       traverse($node, $newNode, patches);
@@ -244,16 +246,6 @@
     return patches;
   }
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-    return typeof obj;
-  } : function (obj) {
-    return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  };
-
-
-
-
-
   var classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -277,75 +269,6 @@
       return Constructor;
     };
   }();
-
-
-
-
-
-
-
-  var get = function get(object, property, receiver) {
-    if (object === null) object = Function.prototype;
-    var desc = Object.getOwnPropertyDescriptor(object, property);
-
-    if (desc === undefined) {
-      var parent = Object.getPrototypeOf(object);
-
-      if (parent === null) {
-        return undefined;
-      } else {
-        return get(parent, property, receiver);
-      }
-    } else if ("value" in desc) {
-      return desc.value;
-    } else {
-      var getter = desc.get;
-
-      if (getter === undefined) {
-        return undefined;
-      }
-
-      return getter.call(receiver);
-    }
-  };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  var set = function set(object, property, value, receiver) {
-    var desc = Object.getOwnPropertyDescriptor(object, property);
-
-    if (desc === undefined) {
-      var parent = Object.getPrototypeOf(object);
-
-      if (parent !== null) {
-        set(parent, property, value, receiver);
-      }
-    } else if ("value" in desc && desc.writable) {
-      desc.value = value;
-    } else {
-      var setter = desc.set;
-
-      if (setter !== undefined) {
-        setter.call(receiver, value);
-      }
-    }
-
-    return value;
-  };
 
   /* Durruti
    * Micro Isomorphic JavaScript library for building user interfaces.
@@ -495,8 +418,8 @@
 
   // traverse and find durruti nodes
   function getComponentNodes($container) {
-    var arr = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-    var traverse = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+    var traverse = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+    var arr = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
 
     if ($container._durruti) {
       arr.push($container);
@@ -504,7 +427,7 @@
 
     if (traverse && $container.children) {
       for (var i = 0; i < $container.children.length; i++) {
-        getComponentNodes($container.children[i], arr);
+        getComponentNodes($container.children[i], traverse, arr);
       }
     }
 
@@ -538,83 +461,73 @@
 
         // mount and unmount in browser, when we specify a container.
         if (isClient && $container) {
-          var $newComponent;
-          var patches;
+          // check if the container is still in the DOM.
+          // if using an old dom node reference.
+          if (!document.body.contains($container)) {
+            // warn for performance.
+            warn('Node', $container, 'is no longer in the DOM. \nIt was probably removed by a parent component.');
+            return;
+          }
 
-          var _ret = function () {
-            // check if the container is still in the DOM.
-            // when running multiple parallel render's, the container
-            // is removed by the previous render, but the reference still in memory.
-            if (!document.body.contains($container)) {
-              // warn for performance.
-              warn('Node', $container, 'is no longer in the DOM. \nIt was probably removed by a parent component.');
-              return {
-                v: void 0
-              };
-            }
+          var componentNodes = [];
+          // convert the template string to a dom node
+          var $newComponent = createFragment(componentHtml);
 
-            var componentNodes = [];
-            // convert the template string to a dom node
-            $newComponent = createFragment(componentHtml);
+          // unmount component and sub-components
+          getComponentNodes($container).forEach(unmountNode);
 
-            // unmount component and sub-components
+          // if the container is a durruti element,
+          // unmount it and it's children and replace the node.
+          if (getCachedComponent($container)) {
+            // remove the data attributes on the new node,
+            // before patch,
+            // and get the list of new components.
+            cleanAttrNodes($newComponent, true);
 
-            getComponentNodes($container).forEach(unmountNode);
+            // get required dom patches
+            var patches = diff($container, $newComponent);
 
-            // if the container is a durruti element,
-            // unmount it and it's children and replace the node.
-            if (getCachedComponent($container)) {
-              // remove the data attributes on the new node,
-              // before patch,
-              // and get the list of new components.
-              cleanAttrNodes($newComponent, true);
+            patches.forEach(function (patch$$1) {
+              // always update component instances,
+              // even if the dom doesn't change.
+              patch$$1.node._durruti = patch$$1.newNode._durruti;
 
-              // get required dom patches
-              patches = diff($container, $newComponent);
+              // patches contain all the traversed nodes.
+              // get the mount components here, for performance.
+              var foundComponentNodes = [];
 
-
-              patches.forEach(function (patch$$1) {
-                // always update component instances,
-                // even if the dom doesn't change.
-                patch$$1.node._durruti = patch$$1.newNode._durruti;
-
-                // patches contain all the traversed nodes.
-                // get the mount components here, for performance.
-                var foundComponentNodes = [];
-
-                if (patch$$1.update) {
-                  // on update only add the parent node.
-                  // traversal is done by the dom patcher.
-                  foundComponentNodes = getComponentNodes(patch$$1.node, [], false);
-                } else if (patch$$1.replace) {
-                  foundComponentNodes = getComponentNodes(patch$$1.newNode);
-                } else {
-                  foundComponentNodes = getComponentNodes(patch$$1.node);
-                }
-
-                // add found component nodes
-                Array.prototype.push.apply(componentNodes, foundComponentNodes);
-              });
-
-              // morph old dom node into new one
-              patch(patches);
-            } else {
-              // if the component is not a durruti element,
-              // insert the template with innerHTML.
-
-              // only if the same html is not already rendered
-              if (!$container.firstElementChild || !$container.firstElementChild.isEqualNode($newComponent)) {
-                $container.innerHTML = componentHtml;
+              if (patch$$1.update) {
+                // on update only add the parent node.
+                // traversal is done by the dom patcher.
+                foundComponentNodes = getComponentNodes(patch$$1.node, false);
+              } else if (patch$$1.replace) {
+                foundComponentNodes = getComponentNodes(patch$$1.newNode);
+              } else {
+                // traverse only if isEqualNode,
+                // otherwise the dom patcher traverses.
+                foundComponentNodes = getComponentNodes(patch$$1.node, !!patch$$1.equal);
               }
 
-              componentNodes = cleanAttrNodes($container);
+              // add found component nodes
+              Array.prototype.push.apply(componentNodes, foundComponentNodes);
+            });
+
+            // morph old dom node into new one
+            patch(patches);
+          } else {
+            // if the component is not a durruti element,
+            // insert the template with innerHTML.
+
+            // only if the same html is not already rendered
+            if (!$container.firstElementChild || !$container.firstElementChild.isEqualNode($newComponent)) {
+              $container.innerHTML = componentHtml;
             }
 
-            // mount newly added components
-            componentNodes.forEach(mountNode);
-          }();
+            componentNodes = cleanAttrNodes($container);
+          }
 
-          if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+          // mount newly added components
+          componentNodes.forEach(mountNode);
         }
 
         return componentHtml;

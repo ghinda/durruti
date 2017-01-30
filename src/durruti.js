@@ -146,14 +146,14 @@ function addComponentId (template, component) {
 }
 
 // traverse and find durruti nodes
-function getComponentNodes ($container, arr = [], traverse = true) {
+function getComponentNodes ($container, traverse = true, arr = []) {
   if ($container._durruti) {
     arr.push($container)
   }
 
   if (traverse && $container.children) {
     for (let i = 0; i < $container.children.length; i++) {
-      getComponentNodes($container.children[i], arr)
+      getComponentNodes($container.children[i], traverse, arr)
     }
   }
 
@@ -181,15 +181,14 @@ class Durruti {
     // mount and unmount in browser, when we specify a container.
     if (util.isClient && $container) {
       // check if the container is still in the DOM.
-      // when running multiple parallel render's, the container
-      // is removed by the previous render, but the reference still in memory.
+      // if using an old dom node reference.
       if (!document.body.contains($container)) {
         // warn for performance.
         util.warn('Node', $container, 'is no longer in the DOM. \nIt was probably removed by a parent component.')
         return
       }
 
-      let componentNodes = []
+      var componentNodes = []
       // convert the template string to a dom node
       var $newComponent = createFragment(componentHtml)
 
@@ -219,11 +218,13 @@ class Durruti {
           if (patch.update) {
             // on update only add the parent node.
             // traversal is done by the dom patcher.
-            foundComponentNodes = getComponentNodes(patch.node, [], false)
+            foundComponentNodes = getComponentNodes(patch.node, false)
           } else if (patch.replace) {
             foundComponentNodes = getComponentNodes(patch.newNode)
           } else {
-            foundComponentNodes = getComponentNodes(patch.node)
+            // traverse only if isEqualNode,
+            // otherwise the dom patcher traverses.
+            foundComponentNodes = getComponentNodes(patch.node, !!patch.equal)
           }
 
           // add found component nodes

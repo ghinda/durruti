@@ -36,8 +36,6 @@
     return extended;
   }
 
-  var DURRUTI_DEBUG = true;
-
   /* Durruti
    * Data store with change events.
    */

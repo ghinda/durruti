@@ -133,7 +133,13 @@ describe('Mouting and Unmounting', function () {
 
     function One () {
       this.render = function () {
-        return '<div>' + Date.now() + durruti.render(Two) + durruti.render(Two) + durruti.render(Two) + durruti.render(Two) + '</div>'
+        return '<div>' +
+          Date.now() +
+          durruti.render(Two) +
+          durruti.render(Two) +
+          durruti.render(Two) +
+          durruti.render(Two) +
+          '</div>'
       }
     }
 
