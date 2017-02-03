@@ -271,4 +271,37 @@ describe('Mouting and Unmounting', function () {
 
     expect(mountTwo).to.equal(1)
   })
+
+  it('should update the component instance when the dom is the same', function () {
+    var mountOne = 0
+    var mountTwo = 0
+
+    function Two (a) {
+      this.mount = function () {
+        mountTwo = a
+      }
+
+      this.render = function () {
+        return '<div></div>'
+      }
+    }
+
+    function One () {
+      this.mount = function ($container) {
+        mountOne++
+      }
+
+      this.render = function () {
+        return '<div>' + durruti.render(new Two(mountOne)) + '</div>'
+      }
+    }
+
+    durruti.render(One, $app)
+
+    var $container = $app.querySelector('div')
+
+    durruti.render(One, $container)
+
+    expect(mountTwo).to.equal(mountOne - 1)
+  })
 })

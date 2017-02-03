@@ -215,16 +215,14 @@ class Durruti {
           // get the mount components here, for performance.
           var foundComponentNodes = []
 
-          if (patch.update) {
-            // on update only add the parent node.
-            // traversal is done by the dom patcher.
-            foundComponentNodes = getComponentNodes(patch.node, false)
-          } else if (patch.replace) {
+          if (patch.replace) {
+            // traverse replaced node
+            // to get nested component nodes.
             foundComponentNodes = getComponentNodes(patch.newNode)
           } else {
-            // traverse only if isEqualNode,
-            // otherwise the dom patcher traverses.
-            foundComponentNodes = getComponentNodes(patch.node, !!patch.equal)
+            // when not replacing a node,
+            // traversal is done by the dom patcher.
+            foundComponentNodes = getComponentNodes(patch.node, false)
           }
 
           // add found component nodes

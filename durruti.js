@@ -202,12 +202,6 @@
     // push traversed node to patch list
     patches.push(patch);
 
-    // faster than outerhtml
-    if ($node.isEqualNode($newNode)) {
-      patch.equal = true;
-      return patches;
-    }
-
     // if one of them is not an element node,
     // or the tag changed,
     // or not the same number of children.
@@ -496,16 +490,14 @@
               // get the mount components here, for performance.
               var foundComponentNodes = [];
 
-              if (patch$$1.update) {
-                // on update only add the parent node.
-                // traversal is done by the dom patcher.
-                foundComponentNodes = getComponentNodes(patch$$1.node, false);
-              } else if (patch$$1.replace) {
+              if (patch$$1.replace) {
+                // traverse replaced node
+                // to get nested component nodes.
                 foundComponentNodes = getComponentNodes(patch$$1.newNode);
               } else {
-                // traverse only if isEqualNode,
-                // otherwise the dom patcher traverses.
-                foundComponentNodes = getComponentNodes(patch$$1.node, !!patch$$1.equal);
+                // when not replacing a node,
+                // traversal is done by the dom patcher.
+                foundComponentNodes = getComponentNodes(patch$$1.node, false);
               }
 
               // add found component nodes

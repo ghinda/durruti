@@ -71,12 +71,6 @@ export function diff ($node, $newNode, patches = []) {
   // push traversed node to patch list
   patches.push(patch)
 
-  // faster than outerhtml
-  if ($node.isEqualNode($newNode)) {
-    patch.equal = true
-    return patches
-  }
-
   // if one of them is not an element node,
   // or the tag changed,
   // or not the same number of children.
