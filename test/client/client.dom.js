@@ -183,4 +183,34 @@ describe('DOM', function () {
 
     durruti.render(One, $app)
   })
+
+  it('prevent cursor jump on re-render', function (done) {
+    var value = 'default'
+    var mounted = false
+
+    function One () {
+      this.mount = function ($node) {
+        // simulate user click.
+        var $input = $node.querySelector('input')
+
+        if (!mounted) {
+          mounted = true
+          $input.focus()
+          $input.setSelectionRange(0, 0)
+
+          value = 'new value'
+          durruti.render(One, $node)
+        } else {
+          expect($input.selectionStart).to.equal(0)
+          done()
+        }
+      }
+
+      this.render = function () {
+        return '<div><input type="text" value="' + value + '"></div>'
+      }
+    }
+
+    durruti.render(One, $app)
+  })
 })

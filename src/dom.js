@@ -58,7 +58,11 @@ function patchAttrs ($node, $newNode) {
     // for properties that need to change with attributes,
     // but don't when changed by user input.
     // eg. checked
-    $node[propMap[prop] || prop] = attrs[prop]
+    var p = propMap[prop] || prop
+    var currentValue = $node[p]
+    if (currentValue !== attrs[prop]) {
+      $node[p] = attrs[prop]
+    }
   }
 }
 
